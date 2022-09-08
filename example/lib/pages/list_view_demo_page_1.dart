@@ -23,13 +23,14 @@ class ListViewDemoPage1State extends State<ListViewDemoPage1> {
 
   @override
   Widget build(BuildContext context) {
-    return PagingListView2<int, Note>(
+    return PagingListView2<int, Note>.separated(
       key: key,
       // padding: EdgeInsets.all(16),
       builderDelegate: PagedChildBuilderDelegate<Note>(itemBuilder: (context, data, child) {
         return NoteWidget(data);
       },),
       pageDataSource: dataSource,
+      separatorBuilder: (_, index) => const SizedBox(height: 20,),
     );
   }
 }
