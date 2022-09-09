@@ -17,12 +17,8 @@ class _$PagingStateTearOff {
   const _$PagingStateTearOff();
 
   PagingStateData<PageKeyType, ItemType> call<PageKeyType, ItemType>(
-      PageKeyType? nextPageKey,
-      List<ItemType> items,
-      PagingStatus status,
-      bool hasRequestNextPage) {
+      List<ItemType> items, PagingStatus status, bool hasRequestNextPage) {
     return PagingStateData<PageKeyType, ItemType>(
-      nextPageKey,
       items,
       status,
       hasRequestNextPage,
@@ -48,8 +44,8 @@ const $PagingState = _$PagingStateTearOff();
 mixin _$PagingState<PageKeyType, ItemType> {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(PageKeyType? nextPageKey, List<ItemType> items,
-            PagingStatus status, bool hasRequestNextPage)
+    TResult Function(
+            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)
         $default, {
     required TResult Function() loading,
     required TResult Function(dynamic error) error,
@@ -57,8 +53,8 @@ mixin _$PagingState<PageKeyType, ItemType> {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(PageKeyType? nextPageKey, List<ItemType> items,
-            PagingStatus status, bool hasRequestNextPage)?
+    TResult Function(
+            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)?
         $default, {
     TResult Function()? loading,
     TResult Function(dynamic error)? error,
@@ -107,10 +103,7 @@ abstract class $PagingStateDataCopyWith<PageKeyType, ItemType, $Res> {
           $Res Function(PagingStateData<PageKeyType, ItemType>) then) =
       _$PagingStateDataCopyWithImpl<PageKeyType, ItemType, $Res>;
   $Res call(
-      {PageKeyType? nextPageKey,
-      List<ItemType> items,
-      PagingStatus status,
-      bool hasRequestNextPage});
+      {List<ItemType> items, PagingStatus status, bool hasRequestNextPage});
 }
 
 /// @nodoc
@@ -128,16 +121,11 @@ class _$PagingStateDataCopyWithImpl<PageKeyType, ItemType, $Res>
 
   @override
   $Res call({
-    Object? nextPageKey = freezed,
     Object? items = freezed,
     Object? status = freezed,
     Object? hasRequestNextPage = freezed,
   }) {
     return _then(PagingStateData<PageKeyType, ItemType>(
-      nextPageKey == freezed
-          ? _value.nextPageKey
-          : nextPageKey // ignore: cast_nullable_to_non_nullable
-              as PageKeyType?,
       items == freezed
           ? _value.items
           : items // ignore: cast_nullable_to_non_nullable
@@ -157,11 +145,8 @@ class _$PagingStateDataCopyWithImpl<PageKeyType, ItemType, $Res>
 /// @nodoc
 class _$PagingStateData<PageKeyType, ItemType>
     implements PagingStateData<PageKeyType, ItemType> {
-  const _$PagingStateData(
-      this.nextPageKey, this.items, this.status, this.hasRequestNextPage);
+  const _$PagingStateData(this.items, this.status, this.hasRequestNextPage);
 
-  @override
-  final PageKeyType? nextPageKey;
   @override
   final List<ItemType> items;
   @override
@@ -171,16 +156,13 @@ class _$PagingStateData<PageKeyType, ItemType>
 
   @override
   String toString() {
-    return 'PagingState<$PageKeyType, $ItemType>(nextPageKey: $nextPageKey, items: $items, status: $status, hasRequestNextPage: $hasRequestNextPage)';
+    return 'PagingState<$PageKeyType, $ItemType>(items: $items, status: $status, hasRequestNextPage: $hasRequestNextPage)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other is PagingStateData<PageKeyType, ItemType> &&
-            (identical(other.nextPageKey, nextPageKey) ||
-                const DeepCollectionEquality()
-                    .equals(other.nextPageKey, nextPageKey)) &&
             (identical(other.items, items) ||
                 const DeepCollectionEquality().equals(other.items, items)) &&
             (identical(other.status, status) ||
@@ -193,7 +175,6 @@ class _$PagingStateData<PageKeyType, ItemType>
   @override
   int get hashCode =>
       runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(nextPageKey) ^
       const DeepCollectionEquality().hash(items) ^
       const DeepCollectionEquality().hash(status) ^
       const DeepCollectionEquality().hash(hasRequestNextPage);
@@ -208,27 +189,27 @@ class _$PagingStateData<PageKeyType, ItemType>
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(PageKeyType? nextPageKey, List<ItemType> items,
-            PagingStatus status, bool hasRequestNextPage)
+    TResult Function(
+            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)
         $default, {
     required TResult Function() loading,
     required TResult Function(dynamic error) error,
   }) {
-    return $default(nextPageKey, items, status, hasRequestNextPage);
+    return $default(items, status, hasRequestNextPage);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(PageKeyType? nextPageKey, List<ItemType> items,
-            PagingStatus status, bool hasRequestNextPage)?
+    TResult Function(
+            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)?
         $default, {
     TResult Function()? loading,
     TResult Function(dynamic error)? error,
     required TResult orElse(),
   }) {
     if ($default != null) {
-      return $default(nextPageKey, items, status, hasRequestNextPage);
+      return $default(items, status, hasRequestNextPage);
     }
     return orElse();
   }
@@ -263,12 +244,9 @@ class _$PagingStateData<PageKeyType, ItemType>
 abstract class PagingStateData<PageKeyType, ItemType>
     implements PagingState<PageKeyType, ItemType> {
   const factory PagingStateData(
-      PageKeyType? nextPageKey,
-      List<ItemType> items,
-      PagingStatus status,
-      bool hasRequestNextPage) = _$PagingStateData<PageKeyType, ItemType>;
+          List<ItemType> items, PagingStatus status, bool hasRequestNextPage) =
+      _$PagingStateData<PageKeyType, ItemType>;
 
-  PageKeyType? get nextPageKey => throw _privateConstructorUsedError;
   List<ItemType> get items => throw _privateConstructorUsedError;
   PagingStatus get status => throw _privateConstructorUsedError;
   bool get hasRequestNextPage => throw _privateConstructorUsedError;
@@ -323,8 +301,8 @@ class _$PagingStateLoading<PageKeyType, ItemType>
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(PageKeyType? nextPageKey, List<ItemType> items,
-            PagingStatus status, bool hasRequestNextPage)
+    TResult Function(
+            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)
         $default, {
     required TResult Function() loading,
     required TResult Function(dynamic error) error,
@@ -335,8 +313,8 @@ class _$PagingStateLoading<PageKeyType, ItemType>
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(PageKeyType? nextPageKey, List<ItemType> items,
-            PagingStatus status, bool hasRequestNextPage)?
+    TResult Function(
+            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)?
         $default, {
     TResult Function()? loading,
     TResult Function(dynamic error)? error,
@@ -451,8 +429,8 @@ class _$PagingStateError<PageKeyType, ItemType>
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(PageKeyType? nextPageKey, List<ItemType> items,
-            PagingStatus status, bool hasRequestNextPage)
+    TResult Function(
+            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)
         $default, {
     required TResult Function() loading,
     required TResult Function(dynamic error) error,
@@ -463,8 +441,8 @@ class _$PagingStateError<PageKeyType, ItemType>
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(PageKeyType? nextPageKey, List<ItemType> items,
-            PagingStatus status, bool hasRequestNextPage)?
+    TResult Function(
+            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)?
         $default, {
     TResult Function()? loading,
     TResult Function(dynamic error)? error,

@@ -19,9 +19,9 @@ class PagingBloc<PageKeyType, ItemType>
               ? [...items, ...value].length
               : [...value].length;
 
-      bool hasNextPage = dataSource.currentKey != null;
+      bool hasNextPage = dataSource.currentKey != null && !dataSource.isEndList;
 
-      bool hasItems = itemCount != null && itemCount > 0;
+      bool hasItems =  itemCount > 0;
 
       bool isListingUnfinished = hasItems && hasNextPage;
 
@@ -32,12 +32,9 @@ class PagingBloc<PageKeyType, ItemType>
       /// The current pagination status.
       PagingStatus status = (isOngoing)
           ? PagingStatus.ongoing
-          : (isCompleted)
-              ? PagingStatus.completed
-              : PagingStatus.noItemsFound;
+          : PagingStatus.completed;
 
       emit(PagingState<PageKeyType, ItemType>(
-          nextPageKey,
           isRefresh
               ? [...value]
               : items != null
@@ -45,13 +42,22 @@ class PagingBloc<PageKeyType, ItemType>
                   : [...value],
           status,
           false));
-    }, onError: (e) => emit(PagingState<PageKeyType, ItemType>.error(e)));
+    }, onError: (e) {
+      if (dataSource.currentKey == null) {
+        emit(PagingState<PageKeyType, ItemType>.error(e));
+      } else {
+        state.maybeMap(
+                (value) => emit(PagingState<PageKeyType, ItemType>(
+                value.items, PagingStatus.noItemsFound, true)),
+            orElse: () => null);
+      }
+    });
   }
 
   void requestNextPage({bool hasRequestNextPage = true}) {
     state.maybeMap(
         (value) => emit(PagingState<PageKeyType, ItemType>(
-            value.nextPageKey, value.items, value.status, hasRequestNextPage)),
+            value.items, value.status, hasRequestNextPage)),
         orElse: () => null);
   }
 }

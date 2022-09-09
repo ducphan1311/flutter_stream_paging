@@ -16,10 +16,10 @@ abstract class DataSource<PageKeyType, ItemType> {
       currentKey = results.item2;
       return results.item1;
     } else {
-      final results = await loadPageAfter(currentKey!, pageSize);
+      final results = await loadPageAfter(currentKey as PageKeyType, pageSize);
       currentKey = results.item2;
       isEndList = (results.item1.length < pageSize);
-      return results.item1 ?? [];
+      return results.item1;
     }
   }
 

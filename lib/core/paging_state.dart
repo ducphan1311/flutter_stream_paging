@@ -5,7 +5,7 @@ part 'paging_state.freezed.dart';
 @freezed
 abstract class PagingState<PageKeyType, ItemType>
     with _$PagingState<PageKeyType, ItemType> {
-  const factory PagingState(PageKeyType? nextPageKey, List<ItemType> items,
+  const factory PagingState(List<ItemType> items,
       PagingStatus status, bool hasRequestNextPage) = PagingStateData;
   const factory PagingState.loading() = PagingStateLoading;
   const factory PagingState.error(dynamic error) = PagingStateError;

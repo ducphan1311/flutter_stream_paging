@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_stream_paging_example/pages/list_view_demo_page_1.dart';
-import 'package:flutter_stream_paging_example/pages/list_view_demo_page_2.dart';
+import 'package:flutter_stream_paging_example/pages/list_view_demo_page.dart';
+import 'package:flutter_stream_paging_example/pages/grid_view_demo_page.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -15,21 +15,21 @@ class HomePageState extends State<HomePage> {
 
   final List<_BottomNavigationItem> _bottomNavigationItems = [
     _BottomNavigationItem(
-      label: 'RefreshPage',
-      iconData: Icons.refresh,
-      widgetBuilder: (context) => const ListViewDemoPage1(),
+      label: 'ListView',
+      iconData: Icons.list,
+      widgetBuilder: (context) => const ListViewDemoPage(),
     ),
     _BottomNavigationItem(
-      label: 'DefaultPage',
-      iconData: Icons.list,
-      widgetBuilder: (context) => const ListViewDemoPage2(),
+      label: 'GridView',
+      iconData: Icons.grid_view,
+      widgetBuilder: (context) => const GridViewDemoPage(),
     ),
   ];
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('ListView'),
+      title: const Text('Demo Paging'),
     ),
     resizeToAvoidBottomInset: false,
     bottomNavigationBar: BottomNavigationBar(

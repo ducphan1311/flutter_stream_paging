@@ -9,15 +9,15 @@ import 'package:flutter_stream_paging/core/paging_state.dart';
 import 'package:flutter_stream_paging/data_source/data_source.dart';
 import 'package:flutter_stream_paging/ui/base_widget.dart';
 import 'package:flutter_stream_paging/ui/paging_silver_builder.dart';
-import 'package:flutter_stream_paging/ui/widgets/empty_widget.dart';
 import 'package:flutter_stream_paging/ui/widgets/new_page_progress_indicator.dart';
+import 'package:flutter_stream_paging/ui/widgets/paging_default_error_widget.dart';
 import 'package:flutter_stream_paging/ui/widgets/paging_default_loading.dart';
 import 'package:flutter_stream_paging/utils/appended_sliver_child_builder_delegate.dart';
 import 'package:flutter_stream_paging/utils/paged_child_builder_delegate.dart';
 
-class PagingListView2<PageKeyType, ItemType>
+class PagingListView<PageKeyType, ItemType>
     extends BaseWidget<PageKeyType, ItemType> {
-  const PagingListView2({
+  const PagingListView({
     Key? key,
     this.isEnablePullToRefresh = true,
     this.padding = EdgeInsets.zero,
@@ -35,6 +35,10 @@ class PagingListView2<PageKeyType, ItemType>
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
     this.semanticIndexCallback,
     this.itemExtent,
+    this.invisibleItemsThreshold = 3,
+    this.newPageErrorIndicatorBuilder,
+    this.newPageCompletedIndicatorBuilder,
+    this.newPageProgressIndicatorBuilder,
     required PagedChildBuilderDelegate<ItemType> builderDelegate,
     required DataSource<PageKeyType, ItemType> pageDataSource,
     WidgetBuilder? emptyBuilder,
@@ -52,7 +56,7 @@ class PagingListView2<PageKeyType, ItemType>
           key: key,
         );
 
-  const PagingListView2.separated({
+  const PagingListView.separated({
     Key? key,
     this.isEnablePullToRefresh = true,
     this.padding = EdgeInsets.zero,
@@ -71,6 +75,10 @@ class PagingListView2<PageKeyType, ItemType>
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
     this.semanticIndexCallback,
     this.itemExtent,
+    this.invisibleItemsThreshold = 3,
+    this.newPageErrorIndicatorBuilder,
+    this.newPageCompletedIndicatorBuilder,
+    this.newPageProgressIndicatorBuilder,
     required PagedChildBuilderDelegate<ItemType> builderDelegate,
     required DataSource<PageKeyType, ItemType> pageDataSource,
     WidgetBuilder? emptyBuilder,
@@ -111,13 +119,18 @@ class PagingListView2<PageKeyType, ItemType>
   final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
   final SemanticIndexCallback? semanticIndexCallback;
   final double? itemExtent;
+  final int invisibleItemsThreshold;
+  final WidgetBuilder? newPageErrorIndicatorBuilder;
+  final WidgetBuilder? newPageCompletedIndicatorBuilder;
+  final WidgetBuilder? newPageProgressIndicatorBuilder;
+
   @override
-  PagingListView2State<PageKeyType, ItemType> createState() =>
-      PagingListView2State<PageKeyType, ItemType>();
+  PagingListViewState<PageKeyType, ItemType> createState() =>
+      PagingListViewState<PageKeyType, ItemType>();
 }
 
-class PagingListView2State<PageKeyType, ItemType>
-    extends State<PagingListView2<PageKeyType, ItemType>> {
+class PagingListViewState<PageKeyType, ItemType>
+    extends State<PagingListView<PageKeyType, ItemType>> {
   late PagingBloc<PageKeyType, ItemType> _pagingBloc;
 
   @override
@@ -132,10 +145,11 @@ class PagingListView2State<PageKeyType, ItemType>
   Widget build(BuildContext context) {
     return BlocProvider<PagingBloc<PageKeyType, ItemType>>.value(
       value: _pagingBloc,
-      child: BlocBuilder<PagingBloc<PageKeyType, ItemType>, PagingState<PageKeyType, ItemType>>(
+      child: BlocBuilder<PagingBloc<PageKeyType, ItemType>,
+          PagingState<PageKeyType, ItemType>>(
         builder: (context, state) {
-          return state.when((nextPageKey, items, status, hasRequestNextPage) {
-            return PagingSilverBuilder2<PageKeyType, ItemType>(
+          return state.when((items, status, hasRequestNextPage) {
+            return PagingSilverBuilder<PageKeyType, ItemType>(
               builderDelegate: widget.builderDelegate,
               padding: widget.padding,
               scrollDirection: widget.scrollDirection,
@@ -156,24 +170,32 @@ class PagingListView2State<PageKeyType, ItemType>
                   index: index,
                   itemList: items,
                   itemCount: items.length,
-                  nextPageKey: nextPageKey,
                 ),
                 items.length,
+                statusIndicatorBuilder: widget.newPageCompletedIndicatorBuilder,
               ),
               loadingListingBuilder: (_) => _buildSliverList(
                 (context, index) => _buildListItemWidget(
-                    context: context,
-                    index: index,
-                    itemList: items,
-                    itemCount: items.length,
-                    nextPageKey: nextPageKey),
+                  context: context,
+                  index: index,
+                  itemList: items,
+                  itemCount: items.length,
+                ),
                 items.length,
-                statusIndicatorBuilder: (_) => const NewPageProgressIndicator(),
+                statusIndicatorBuilder: (_) =>
+                    (widget.newPageProgressIndicatorBuilder != null)
+                        ? widget.newPageProgressIndicatorBuilder!(context)
+                        : const NewPageProgressIndicator(),
               ),
-              errorListingBuilder: (_) => SliverToBoxAdapter(
-                child: (widget.loadingBuilder != null)
-                    ? widget.loadingBuilder!(context)
-                    : const EmptyWidget(),
+              errorListingBuilder: (_) => _buildSliverList(
+                (context, index) => _buildListItemWidget(
+                  context: context,
+                  index: index,
+                  itemList: items,
+                  itemCount: items.length,
+                ),
+                items.length,
+                statusIndicatorBuilder: widget.newPageErrorIndicatorBuilder,
               ),
               status: status,
               refreshBuilder: (_) => widget.isEnablePullToRefresh
@@ -186,28 +208,34 @@ class PagingListView2State<PageKeyType, ItemType>
                   : const PagingDefaultLoading(),
               error: (error) => widget.errorBuilder != null
                   ? widget.errorBuilder!(context, error)
-                  : ErrorWidget(error));
+                  : PagingDefaultErrorWidget(
+                      errorMessage: error,
+                      onPressed: () async {
+                        await _pagingBloc.loadPage(isRefresh: true);
+                      },
+                    ));
         },
       ),
     );
   }
 
-  Widget _buildListItemWidget(
-      {required BuildContext context,
-      required int index,
-      required List<ItemType> itemList,
-      required int itemCount,
-      required PageKeyType? nextPageKey}) {
+  Widget _buildListItemWidget({
+    required BuildContext context,
+    required int index,
+    required List<ItemType> itemList,
+    required int itemCount,
+  }) {
     var hasRequestedNextPage = context
         .watch<PagingBloc<PageKeyType, ItemType>>()
         .state
         .maybeMap((value) => value.hasRequestNextPage, orElse: () => false);
     if (!hasRequestedNextPage) {
-      final newPageRequestTriggerIndex = max(0, itemCount - 3);
+      final newPageRequestTriggerIndex =
+          max(0, itemCount - widget.invisibleItemsThreshold);
 
       final isBuildingTriggerIndexItem = index == newPageRequestTriggerIndex;
 
-      if (isBuildingTriggerIndexItem) {
+      if (!_pagingBloc.dataSource.isEndList && isBuildingTriggerIndexItem) {
         // Schedules the request for the end of this frame.
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           await _pagingBloc.loadPage();

@@ -5,15 +5,14 @@ import 'package:flutter_stream_paging_example/datasource/models/note.dart';
 import 'package:flutter_stream_paging_example/datasource/note_repository.dart';
 import 'package:flutter_stream_paging_example/widgets/note_widget.dart';
 
-
-class ListViewDemoPage2 extends StatefulWidget {
-  const ListViewDemoPage2({super.key});
+class ListViewDemoPage extends StatefulWidget {
+  const ListViewDemoPage({super.key});
 
   @override
-  ListViewDemoPage2State createState() => ListViewDemoPage2State();
+  ListViewDemoPageState createState() => ListViewDemoPageState();
 }
 
-class ListViewDemoPage2State extends State<ListViewDemoPage2> {
+class ListViewDemoPageState extends State<ListViewDemoPage> {
   final GlobalKey key = GlobalKey();
   late ListViewDataSource dataSource;
   @override
@@ -24,14 +23,14 @@ class ListViewDemoPage2State extends State<ListViewDemoPage2> {
 
   @override
   Widget build(BuildContext context) {
-    return PagingListView2<int, Note>(
+    return PagingListView<int, Note>.separated(
       key: key,
       // padding: EdgeInsets.all(16),
       builderDelegate: PagedChildBuilderDelegate<Note>(itemBuilder: (context, data, child) {
         return NoteWidget(data);
       },),
       pageDataSource: dataSource,
-      isEnablePullToRefresh: false,
+      separatorBuilder: (_, index) => const SizedBox(height: 20,),
     );
   }
 }
