@@ -3,3 +3,6 @@
 
 # 1.0.2
 - docs: update README
+
+# 1.0.3
+- doc: update demo
