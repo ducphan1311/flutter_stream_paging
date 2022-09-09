@@ -25,7 +25,6 @@ class ListViewDemoPageState extends State<ListViewDemoPage> {
   Widget build(BuildContext context) {
     return PagingListView<int, Note>.separated(
       key: key,
-      // padding: EdgeInsets.all(16),
       builderDelegate: PagedChildBuilderDelegate<Note>(itemBuilder: (context, data, child) {
         return NoteWidget(data);
       },),

@@ -1,3 +1,5 @@
-## 0.0.1
+# 1.0.1
+- docs: initial version
 
-* TODO: Describe initial release.
+# 1.0.2
+- docs: update README
