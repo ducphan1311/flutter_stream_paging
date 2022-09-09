@@ -21,7 +21,7 @@ A Flutter package that supports pagination(load infinite) for ListView, GridView
 
 |   |   |
 |---|---|
-| <img src="https://raw.githubusercontent.com/ducphan1311/flutter_stream_paging/main/demo/list_view.gif" alt="Example Project" /> | <img src="https://raw.githubusercontent.com/ducphan1311/flutter_stream_paging/main/demo/list_view.gif" alt="Example Project" /> |
+| <img src="https://raw.githubusercontent.com/ducphan1311/flutter_stream_paging/main/demo/list_view.gif" alt="Example Project" /> | <img src="https://raw.githubusercontent.com/ducphan1311/flutter_stream_paging/main/demo/grid_view.gif" alt="Example Project" /> |
 
 ### DataSource
 #### PageKeyedDataSource
