@@ -26,7 +26,7 @@ class GridViewDemoPageState extends State<GridViewDemoPage> {
   Widget build(BuildContext context) {
     return PagingGridView<int, Note>(
         builderDelegate: PagedChildBuilderDelegate<Note>(
-          itemBuilder: (context, data, child) {
+          itemBuilder: (context, data, child, onUpdate) {
             return NoteWidget(data);
           },
         ),

@@ -4,6 +4,7 @@ typedef ItemWidgetBuilder<ItemType> = Widget Function(
   BuildContext context,
   ItemType item,
   int index,
+  Function(ItemType newItem) onUpdate,
 );
 
 /// Supplies builders for the visual components of paged views.

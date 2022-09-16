@@ -25,11 +25,16 @@ class ListViewDemoPageState extends State<ListViewDemoPage> {
   Widget build(BuildContext context) {
     return PagingListView<int, Note>.separated(
       key: key,
-      builderDelegate: PagedChildBuilderDelegate<Note>(itemBuilder: (context, data, child) {
-        return NoteWidget(data);
-      },),
+      builderDelegate: PagedChildBuilderDelegate<Note>(
+        itemBuilder: (context, data, child, onUpdate) {
+          return NoteWidget(data);
+        },
+      ),
       pageDataSource: dataSource,
-      separatorBuilder: (_, index) => const SizedBox(height: 20,),
+      separatorBuilder: (_, index) => const SizedBox(
+        height: 20,
+      ),
+      errorBuilder: (_, err) => const SizedBox(),
     );
   }
 }

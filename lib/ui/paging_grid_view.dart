@@ -220,7 +220,9 @@ class _PagingGridViewState<PageKeyType, ItemType>
     }
 
     final item = itemList[index];
-    return widget.builderDelegate.itemBuilder(context, item, index);
+    return widget.builderDelegate.itemBuilder(context, item, index, (newItem){
+      _pagingBloc.copyWith(newItem, index);
+    });
   }
 
   WidgetBuilder _defaultRefreshBuilder(BuildContext context) {

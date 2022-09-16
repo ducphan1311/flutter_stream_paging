@@ -54,6 +54,14 @@ class PagingBloc<PageKeyType, ItemType>
     });
   }
 
+  void copyWith(ItemType newItem, int index) {
+    state.maybeMap((value) {
+      var items = [...value.items];
+      items[index] = newItem;
+      emit(PagingStateData(items, value.status, value.hasRequestNextPage));
+    }, orElse: () => null);
+  }
+
   void requestNextPage({bool hasRequestNextPage = true}) {
     state.maybeMap(
         (value) => emit(PagingState<PageKeyType, ItemType>(
