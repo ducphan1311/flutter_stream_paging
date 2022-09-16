@@ -15,6 +15,11 @@ import 'package:flutter_stream_paging/ui/widgets/paging_default_loading.dart';
 import 'package:flutter_stream_paging/utils/appended_sliver_child_builder_delegate.dart';
 import 'package:flutter_stream_paging/utils/paged_child_builder_delegate.dart';
 
+typedef NewPageWidgetBuilder = Widget Function(
+  BuildContext context,
+  Function()? onLoadMore,
+);
+
 class PagingListView<PageKeyType, ItemType>
     extends BaseWidget<PageKeyType, ItemType> {
   const PagingListView({
@@ -122,7 +127,7 @@ class PagingListView<PageKeyType, ItemType>
   final int invisibleItemsThreshold;
   final WidgetBuilder? newPageErrorIndicatorBuilder;
   final WidgetBuilder? newPageCompletedIndicatorBuilder;
-  final WidgetBuilder? newPageProgressIndicatorBuilder;
+  final NewPageWidgetBuilder? newPageProgressIndicatorBuilder;
 
   @override
   PagingListViewState<PageKeyType, ItemType> createState() =>
@@ -184,7 +189,10 @@ class PagingListViewState<PageKeyType, ItemType>
                 items.length,
                 statusIndicatorBuilder: (_) =>
                     (widget.newPageProgressIndicatorBuilder != null)
-                        ? widget.newPageProgressIndicatorBuilder!(context)
+                        ? widget.newPageProgressIndicatorBuilder!(context,
+                            () async {
+                            await _pagingBloc.loadPage();
+                          })
                         : const NewPageProgressIndicator(),
               ),
               errorListingBuilder: (_) => _buildSliverList(
@@ -246,7 +254,7 @@ class PagingListViewState<PageKeyType, ItemType>
     }
 
     final item = itemList[index];
-    return widget.builderDelegate.itemBuilder(context, item, index, (newItem){
+    return widget.builderDelegate.itemBuilder(context, item, index, (newItem) {
       _pagingBloc.copyWith(newItem, index);
     });
   }
