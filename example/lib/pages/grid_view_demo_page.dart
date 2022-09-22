@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_stream_paging/fl_stream_paging.dart';
-import 'package:flutter_stream_paging/ui/paging_grid_view.dart';
 import 'package:flutter_stream_paging_example/datasource/list_view_page.dart';
 import 'package:flutter_stream_paging_example/datasource/models/note.dart';
 import 'package:flutter_stream_paging_example/datasource/note_repository.dart';
@@ -26,7 +25,7 @@ class GridViewDemoPageState extends State<GridViewDemoPage> {
   Widget build(BuildContext context) {
     return PagingGridView<int, Note>(
         builderDelegate: PagedChildBuilderDelegate<Note>(
-          itemBuilder: (context, data, child, onUpdate) {
+          itemBuilder: (context, data, child, onUpdate, onDelete) {
             return NoteWidget(data);
           },
         ),

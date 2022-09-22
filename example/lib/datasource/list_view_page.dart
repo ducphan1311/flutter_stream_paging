@@ -4,6 +4,7 @@ import 'package:flutter_stream_paging/data_source/data_source.dart';
 import 'package:flutter_stream_paging_example/datasource/models/note.dart';
 import 'package:flutter_stream_paging_example/datasource/note_repository.dart';
 import 'package:tuple/tuple.dart';
+
 class ListViewDataSource extends DataSource<int, Note> {
   NoteRepository noteRepository;
 
@@ -15,7 +16,8 @@ class ListViewDataSource extends DataSource<int, Note> {
   }
 
   @override
-  FutureOr<Tuple2<List<Note>, int>> loadPageAfter(int params, int pageSize) async {
+  FutureOr<Tuple2<List<Note>, int>> loadPageAfter(
+      int params, int pageSize) async {
     if (params == 4) {
       return Tuple2([], params + 1);
     } else {

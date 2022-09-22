@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stream_paging_example/pages/list_view_demo_page.dart';
 import 'package:flutter_stream_paging_example/pages/grid_view_demo_page.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -28,33 +27,33 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Demo Paging'),
-    ),
-    resizeToAvoidBottomInset: false,
-    bottomNavigationBar: BottomNavigationBar(
-      currentIndex: _selectedBottomNavigationIndex,
-      items: _bottomNavigationItems
-          .map(
-            (item) => BottomNavigationBarItem(
-          icon: Icon(item.iconData),
-          label: item.label,
+        appBar: AppBar(
+          title: const Text('Demo Paging'),
         ),
-      )
-          .toList(),
-      onTap: (newIndex) => setState(
+        resizeToAvoidBottomInset: false,
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedBottomNavigationIndex,
+          items: _bottomNavigationItems
+              .map(
+                (item) => BottomNavigationBarItem(
+                  icon: Icon(item.iconData),
+                  label: item.label,
+                ),
+              )
+              .toList(),
+          onTap: (newIndex) => setState(
             () => _selectedBottomNavigationIndex = newIndex,
-      ),
-    ),
-    body: IndexedStack(
-      index: _selectedBottomNavigationIndex,
-      children: _bottomNavigationItems
-          .map(
-            (item) => item.widgetBuilder(context),
-      )
-          .toList(),
-    ),
-  );
+          ),
+        ),
+        body: IndexedStack(
+          index: _selectedBottomNavigationIndex,
+          children: _bottomNavigationItems
+              .map(
+                (item) => item.widgetBuilder(context),
+              )
+              .toList(),
+        ),
+      );
 }
 
 class _BottomNavigationItem {

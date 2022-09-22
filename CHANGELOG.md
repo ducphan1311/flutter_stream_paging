@@ -12,3 +12,12 @@
 
 # 1.0.5
 - doc: load more with button. add NewPageWidgetBuilder
+
+# 1.0.6
+- doc: add option addItem, deletedItem. add AddItemWidgetBuilder
+
+# 1.0.7
+- doc: hotfix flow show expand
+
+# 1.0.8
+- doc: remove flutter_bloc

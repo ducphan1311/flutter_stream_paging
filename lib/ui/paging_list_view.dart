@@ -2,22 +2,17 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/widgets.dart' as widgets;
-import 'package:flutter_stream_paging/core/paging_bloc.dart';
-import 'package:flutter_stream_paging/core/paging_state.dart';
-import 'package:flutter_stream_paging/data_source/data_source.dart';
-import 'package:flutter_stream_paging/ui/base_widget.dart';
-import 'package:flutter_stream_paging/ui/paging_silver_builder.dart';
-import 'package:flutter_stream_paging/ui/widgets/new_page_progress_indicator.dart';
-import 'package:flutter_stream_paging/ui/widgets/paging_default_error_widget.dart';
-import 'package:flutter_stream_paging/ui/widgets/paging_default_loading.dart';
-import 'package:flutter_stream_paging/utils/appended_sliver_child_builder_delegate.dart';
-import 'package:flutter_stream_paging/utils/paged_child_builder_delegate.dart';
+import 'package:flutter_stream_paging/fl_stream_paging.dart';
 
 typedef NewPageWidgetBuilder = Widget Function(
   BuildContext context,
   Function()? onLoadMore,
+);
+
+typedef AddItemWidgetBuilder<ItemType> = Widget Function(
+  BuildContext context,
+  Function(ItemType newItem) onAddItem,
 );
 
 class PagingListView<PageKeyType, ItemType>
@@ -44,6 +39,7 @@ class PagingListView<PageKeyType, ItemType>
     this.newPageErrorIndicatorBuilder,
     this.newPageCompletedIndicatorBuilder,
     this.newPageProgressIndicatorBuilder,
+    this.addItemBuilder,
     required PagedChildBuilderDelegate<ItemType> builderDelegate,
     required DataSource<PageKeyType, ItemType> pageDataSource,
     WidgetBuilder? emptyBuilder,
@@ -84,6 +80,7 @@ class PagingListView<PageKeyType, ItemType>
     this.newPageErrorIndicatorBuilder,
     this.newPageCompletedIndicatorBuilder,
     this.newPageProgressIndicatorBuilder,
+    this.addItemBuilder,
     required PagedChildBuilderDelegate<ItemType> builderDelegate,
     required DataSource<PageKeyType, ItemType> pageDataSource,
     WidgetBuilder? emptyBuilder,
@@ -128,6 +125,7 @@ class PagingListView<PageKeyType, ItemType>
   final WidgetBuilder? newPageErrorIndicatorBuilder;
   final WidgetBuilder? newPageCompletedIndicatorBuilder;
   final NewPageWidgetBuilder? newPageProgressIndicatorBuilder;
+  final AddItemWidgetBuilder? addItemBuilder;
 
   @override
   PagingListViewState<PageKeyType, ItemType> createState() =>
@@ -136,95 +134,129 @@ class PagingListView<PageKeyType, ItemType>
 
 class PagingListViewState<PageKeyType, ItemType>
     extends State<PagingListView<PageKeyType, ItemType>> {
-  late PagingBloc<PageKeyType, ItemType> _pagingBloc;
+  PagingState<PageKeyType, ItemType> _pagingState = const PagingState.loading();
+
+  void emit(PagingState<PageKeyType, ItemType> state) {
+    if (mounted) {
+      setState(() {
+        _pagingState = state;
+      });
+    }
+  }
+
+  late DataSource<PageKeyType, ItemType> dataSource;
+
+  Future loadPage({PageKeyType? nextPageKey, bool isRefresh = false}) async {
+    var items = _pagingState.maybeMap((value) => value.items, orElse: () => null);
+    await dataSource.loadPage(isRefresh: isRefresh).then((value) {
+      int? itemCount = isRefresh
+      ? [...value].length
+          : items != null
+      ? [...items, ...value].length
+          : [...value].length;
+
+      bool hasNextPage = dataSource.currentKey != null && !dataSource.isEndList;
+
+      bool hasItems = itemCount > 0;
+
+      bool isListingUnfinished = hasItems && hasNextPage;
+
+      bool isOngoing = isListingUnfinished;
+
+      bool isCompleted = hasItems && !hasNextPage;
+
+      /// The current pagination status.
+      PagingStatus status =
+      (isOngoing) ? PagingStatus.ongoing : PagingStatus.completed;
+
+      emit(PagingState<PageKeyType, ItemType>(
+      isRefresh
+      ? [...value]
+          : items != null
+      ? [...items, ...value]
+          : [...value],
+      status,
+      false));
+    }, onError: (e) {
+      if (dataSource.currentKey == null) {
+        emit(PagingState<PageKeyType, ItemType>.error(e));
+      } else {
+        _pagingState.maybeMap(
+                (value) => emit(PagingState<PageKeyType, ItemType>(
+                value.items, PagingStatus.noItemsFound, true)),
+            orElse: () => null);
+      }
+    });
+  }
+
+  void copyWith(ItemType newItem, int index) {
+    _pagingState.maybeMap((value) {
+      var items = [...value.items];
+      items[index] = newItem;
+      emit(PagingStateData(items, value.status, value.hasRequestNextPage));
+    }, orElse: () => null);
+  }
+
+  void addItem(ItemType newItem) {
+    _pagingState.maybeMap((value) {
+      var items = [...value.items, newItem];
+      emit(PagingStateData(items, value.status, value.hasRequestNextPage));
+    }, orElse: () => null);
+  }
+
+  void deleteItem(int index) {
+    _pagingState.maybeMap((value) {
+      var items = [...value.items];
+      items.removeWhere((element) => items.indexOf(element) == index);
+      emit(PagingStateData(items, value.status, value.hasRequestNextPage));
+    }, orElse: () => null);
+  }
+
+  void requestNextPage({bool hasRequestNextPage = true}) {
+    _pagingState.maybeMap(
+            (value) => emit(PagingState<PageKeyType, ItemType>(
+            value.items, value.status, hasRequestNextPage)),
+        orElse: () => null);
+  }
+
 
   @override
   void initState() {
     super.initState();
-    _pagingBloc =
-        PagingBloc<PageKeyType, ItemType>(dataSource: widget.pageDataSource)
-          ..loadPage();
+    dataSource = widget.pageDataSource;
+    loadPage();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<PagingBloc<PageKeyType, ItemType>>.value(
-      value: _pagingBloc,
-      child: BlocBuilder<PagingBloc<PageKeyType, ItemType>,
-          PagingState<PageKeyType, ItemType>>(
-        builder: (context, state) {
-          return state.when((items, status, hasRequestNextPage) {
-            return PagingSilverBuilder<PageKeyType, ItemType>(
-              builderDelegate: widget.builderDelegate,
-              padding: widget.padding,
-              scrollDirection: widget.scrollDirection,
-              reverse: widget.reverse,
-              controller: widget.controller,
-              primary: widget.primary,
-              physics: widget.physics,
-              shrinkWrap: widget.shrinkWrap,
-              addRepaintBoundaries: widget.addRepaintBoundaries,
-              addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
-              addSemanticIndexes: widget.addSemanticIndexes,
-              cacheExtent: widget.cacheExtent,
-              dragStartBehavior: widget.dragStartBehavior,
-              keyboardDismissBehavior: widget.keyboardDismissBehavior,
-              completedListingBuilder: (_) => _buildSliverList(
-                (context, index) => _buildListItemWidget(
-                  context: context,
-                  index: index,
-                  itemList: items,
-                  itemCount: items.length,
-                ),
-                items.length,
-                statusIndicatorBuilder: widget.newPageCompletedIndicatorBuilder,
-              ),
-              loadingListingBuilder: (_) => _buildSliverList(
-                (context, index) => _buildListItemWidget(
-                  context: context,
-                  index: index,
-                  itemList: items,
-                  itemCount: items.length,
-                ),
-                items.length,
-                statusIndicatorBuilder: (_) =>
-                    (widget.newPageProgressIndicatorBuilder != null)
-                        ? widget.newPageProgressIndicatorBuilder!(context,
-                            () async {
-                            await _pagingBloc.loadPage();
-                          })
-                        : const NewPageProgressIndicator(),
-              ),
-              errorListingBuilder: (_) => _buildSliverList(
-                (context, index) => _buildListItemWidget(
-                  context: context,
-                  index: index,
-                  itemList: items,
-                  itemCount: items.length,
-                ),
-                items.length,
-                statusIndicatorBuilder: widget.newPageErrorIndicatorBuilder,
-              ),
-              status: status,
-              refreshBuilder: (_) => widget.isEnablePullToRefresh
-                  ? ((widget.refreshBuilder ?? _defaultRefreshBuilder(_))(_))
-                  : const SliverToBoxAdapter(),
-            );
+    return _pagingState.when((items, status, hasRequestNextPage) {
+      return widget.addItemBuilder != null
+          ? Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child:
+            _pagingSilverBuilder(items: items, status: status),
+          ),
+          if (widget.addItemBuilder != null)
+            widget.addItemBuilder!(
+                context, (newItem) => addItem(newItem))
+        ],
+      )
+          : _pagingSilverBuilder(items: items, status: status);
+    },
+        loading: () => (widget.loadingBuilder != null)
+            ? widget.loadingBuilder!(context)
+            : const PagingDefaultLoading(),
+        error: (error) => widget.errorBuilder != null
+            ? widget.errorBuilder!(context, error)
+            : PagingDefaultErrorWidget(
+          errorMessage: error,
+          onPressed: () async {
+            await loadPage(isRefresh: true);
           },
-              loading: () => (widget.loadingBuilder != null)
-                  ? widget.loadingBuilder!(context)
-                  : const PagingDefaultLoading(),
-              error: (error) => widget.errorBuilder != null
-                  ? widget.errorBuilder!(context, error)
-                  : PagingDefaultErrorWidget(
-                      errorMessage: error,
-                      onPressed: () async {
-                        await _pagingBloc.loadPage(isRefresh: true);
-                      },
-                    ));
-        },
-      ),
-    );
+        ));
   }
 
   Widget _buildListItemWidget({
@@ -233,9 +265,7 @@ class PagingListViewState<PageKeyType, ItemType>
     required List<ItemType> itemList,
     required int itemCount,
   }) {
-    var hasRequestedNextPage = context
-        .watch<PagingBloc<PageKeyType, ItemType>>()
-        .state
+    var hasRequestedNextPage = _pagingState
         .maybeMap((value) => value.hasRequestNextPage, orElse: () => false);
     if (!hasRequestedNextPage) {
       final newPageRequestTriggerIndex =
@@ -243,20 +273,20 @@ class PagingListViewState<PageKeyType, ItemType>
 
       final isBuildingTriggerIndexItem = index == newPageRequestTriggerIndex;
 
-      if (!_pagingBloc.dataSource.isEndList && isBuildingTriggerIndexItem) {
+      if (!dataSource.isEndList && isBuildingTriggerIndexItem) {
         // Schedules the request for the end of this frame.
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          await _pagingBloc.loadPage();
+          await loadPage();
           // _pagingController.notifyPageRequestListeners(_nextKey!);
         });
-        _pagingBloc.requestNextPage();
+        requestNextPage();
       }
     }
 
     final item = itemList[index];
     return widget.builderDelegate.itemBuilder(context, item, index, (newItem) {
-      _pagingBloc.copyWith(newItem, index);
-    });
+      copyWith(newItem, index);
+    }, () => deleteItem(index));
   }
 
   SliverMultiBoxAdaptorWidget _buildSliverList(
@@ -314,8 +344,67 @@ class PagingListViewState<PageKeyType, ItemType>
           refreshTriggerPullDistance: 100.0,
           refreshIndicatorExtent: 60.0,
           onRefresh: () async {
-            await _pagingBloc.loadPage(isRefresh: true);
+            await loadPage(isRefresh: true);
           },
         );
+  }
+
+  Widget _pagingSilverBuilder(
+      {required List<ItemType> items, required PagingStatus status}) {
+    return PagingSilverBuilder<PageKeyType, ItemType>(
+      builderDelegate: widget.builderDelegate,
+      padding: widget.padding,
+      scrollDirection: widget.scrollDirection,
+      reverse: widget.reverse,
+      controller: widget.controller,
+      primary: widget.primary,
+      physics: widget.physics,
+      shrinkWrap: widget.shrinkWrap,
+      addRepaintBoundaries: widget.addRepaintBoundaries,
+      addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+      addSemanticIndexes: widget.addSemanticIndexes,
+      cacheExtent: widget.cacheExtent,
+      dragStartBehavior: widget.dragStartBehavior,
+      keyboardDismissBehavior: widget.keyboardDismissBehavior,
+      completedListingBuilder: (_) => _buildSliverList(
+        (context, index) => _buildListItemWidget(
+          context: context,
+          index: index,
+          itemList: items,
+          itemCount: items.length,
+        ),
+        items.length,
+        statusIndicatorBuilder: widget.newPageCompletedIndicatorBuilder,
+      ),
+      loadingListingBuilder: (_) => _buildSliverList(
+        (context, index) => _buildListItemWidget(
+          context: context,
+          index: index,
+          itemList: items,
+          itemCount: items.length,
+        ),
+        items.length,
+        statusIndicatorBuilder: (_) =>
+            (widget.newPageProgressIndicatorBuilder != null)
+                ? widget.newPageProgressIndicatorBuilder!(context, () async {
+                    await loadPage();
+                  })
+                : const NewPageProgressIndicator(),
+      ),
+      errorListingBuilder: (_) => _buildSliverList(
+        (context, index) => _buildListItemWidget(
+          context: context,
+          index: index,
+          itemList: items,
+          itemCount: items.length,
+        ),
+        items.length,
+        statusIndicatorBuilder: widget.newPageErrorIndicatorBuilder,
+      ),
+      status: status,
+      refreshBuilder: (_) => widget.isEnablePullToRefresh
+          ? ((widget.refreshBuilder ?? _defaultRefreshBuilder(_))(_))
+          : const SliverToBoxAdapter(),
+    );
   }
 }

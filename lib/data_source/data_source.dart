@@ -5,8 +5,8 @@ import 'package:tuple/tuple.dart';
 abstract class DataSource<PageKeyType, ItemType> {
   FutureOr<Tuple2<List<ItemType>, PageKeyType>> loadInitial(int pageSize);
 
-  FutureOr<Tuple2<List<ItemType>, PageKeyType>> loadPageAfter(PageKeyType params, int pageSize);
-
+  FutureOr<Tuple2<List<ItemType>, PageKeyType>> loadPageAfter(
+      PageKeyType params, int pageSize);
 
   /// Request load page for Data Source
   Future<List<ItemType>> loadPage({bool isRefresh = false}) async {
@@ -24,6 +24,7 @@ abstract class DataSource<PageKeyType, ItemType> {
   }
 
   PageKeyType? currentKey;
+
   /// true when your list is don't have any data for next request.
   bool isEndList;
 
