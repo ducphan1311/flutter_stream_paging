@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:async/async.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart' as widgets;
@@ -135,6 +136,7 @@ class PagingListView<PageKeyType, ItemType>
 class PagingListViewState<PageKeyType, ItemType>
     extends State<PagingListView<PageKeyType, ItemType>> {
   PagingState<PageKeyType, ItemType> _pagingState = const PagingState.loading();
+  CancelableOperation? cancelableOperation;
 
   void emit(PagingState<PageKeyType, ItemType> state) {
     if (mounted) {
@@ -147,13 +149,19 @@ class PagingListViewState<PageKeyType, ItemType>
   late DataSource<PageKeyType, ItemType> dataSource;
 
   Future loadPage({PageKeyType? nextPageKey, bool isRefresh = false}) async {
-    var items = _pagingState.maybeMap((value) => value.items, orElse: () => null);
-    await dataSource.loadPage(isRefresh: isRefresh).then((value) {
+    if (cancelableOperation != null && !cancelableOperation!.isCompleted) {
+      cancelableOperation!.cancel();
+    }
+    var items =
+        _pagingState.maybeMap((value) => value.items, orElse: () => null);
+    cancelableOperation = CancelableOperation.fromFuture(
+        dataSource.loadPage(isRefresh: isRefresh));
+    cancelableOperation!.value.then((value) {
       int? itemCount = isRefresh
-      ? [...value].length
+          ? [...value].length
           : items != null
-      ? [...items, ...value].length
-          : [...value].length;
+              ? [...items, ...value].length
+              : [...value].length;
 
       bool hasNextPage = dataSource.currentKey != null && !dataSource.isEndList;
 
@@ -167,26 +175,65 @@ class PagingListViewState<PageKeyType, ItemType>
 
       /// The current pagination status.
       PagingStatus status =
-      (isOngoing) ? PagingStatus.ongoing : PagingStatus.completed;
+          (isOngoing) ? PagingStatus.ongoing : PagingStatus.completed;
 
       emit(PagingState<PageKeyType, ItemType>(
-      isRefresh
-      ? [...value]
-          : items != null
-      ? [...items, ...value]
-          : [...value],
-      status,
-      false));
+          isRefresh
+              ? [...value]
+              : items != null
+                  ? [...items, ...value]
+                  : [...value],
+          status,
+          false));
     }, onError: (e) {
       if (dataSource.currentKey == null) {
         emit(PagingState<PageKeyType, ItemType>.error(e));
       } else {
         _pagingState.maybeMap(
-                (value) => emit(PagingState<PageKeyType, ItemType>(
+            (value) => emit(PagingState<PageKeyType, ItemType>(
                 value.items, PagingStatus.noItemsFound, true)),
             orElse: () => null);
       }
     });
+    // await dataSource.loadPage(isRefresh: isRefresh).then((value) {
+    //   int? itemCount = isRefresh
+    //   ? [...value].length
+    //       : items != null
+    //   ? [...items, ...value].length
+    //       : [...value].length;
+    //
+    //   bool hasNextPage = dataSource.currentKey != null && !dataSource.isEndList;
+    //
+    //   bool hasItems = itemCount > 0;
+    //
+    //   bool isListingUnfinished = hasItems && hasNextPage;
+    //
+    //   bool isOngoing = isListingUnfinished;
+    //
+    //   bool isCompleted = hasItems && !hasNextPage;
+    //
+    //   /// The current pagination status.
+    //   PagingStatus status =
+    //   (isOngoing) ? PagingStatus.ongoing : PagingStatus.completed;
+    //
+    //   emit(PagingState<PageKeyType, ItemType>(
+    //   isRefresh
+    //   ? [...value]
+    //       : items != null
+    //   ? [...items, ...value]
+    //       : [...value],
+    //   status,
+    //   false));
+    // }, onError: (e) {
+    //   if (dataSource.currentKey == null) {
+    //     emit(PagingState<PageKeyType, ItemType>.error(e));
+    //   } else {
+    //     _pagingState.maybeMap(
+    //             (value) => emit(PagingState<PageKeyType, ItemType>(
+    //             value.items, PagingStatus.noItemsFound, true)),
+    //         orElse: () => null);
+    //   }
+    // });
   }
 
   void copyWith(ItemType newItem, int index) {
@@ -214,11 +261,10 @@ class PagingListViewState<PageKeyType, ItemType>
 
   void requestNextPage({bool hasRequestNextPage = true}) {
     _pagingState.maybeMap(
-            (value) => emit(PagingState<PageKeyType, ItemType>(
+        (value) => emit(PagingState<PageKeyType, ItemType>(
             value.items, value.status, hasRequestNextPage)),
         orElse: () => null);
   }
-
 
   @override
   void initState() {
@@ -228,23 +274,35 @@ class PagingListViewState<PageKeyType, ItemType>
   }
 
   @override
+  void didUpdateWidget(
+      covariant PagingListView<PageKeyType, ItemType> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    cancelableOperation?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return _pagingState.when((items, status, hasRequestNextPage) {
-      return widget.addItemBuilder != null
-          ? Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child:
-            _pagingSilverBuilder(items: items, status: status),
-          ),
-          if (widget.addItemBuilder != null)
-            widget.addItemBuilder!(
-                context, (newItem) => addItem(newItem))
-        ],
-      )
-          : _pagingSilverBuilder(items: items, status: status);
+      return
+        // widget.addItemBuilder != null
+        //   ? Column(
+        //       crossAxisAlignment: CrossAxisAlignment.start,
+        //       mainAxisSize: MainAxisSize.min,
+        //       children: [
+        //         Expanded(
+        //           child: _pagingSilverBuilder(items: items, status: status),
+        //         ),
+        //         if (widget.addItemBuilder != null)
+        //           widget.addItemBuilder!(context, (newItem) => addItem(newItem))
+        //       ],
+        //     )
+        //   :
+        _pagingSilverBuilder(items: items, status: status);
     },
         loading: () => (widget.loadingBuilder != null)
             ? widget.loadingBuilder!(context)
@@ -252,11 +310,11 @@ class PagingListViewState<PageKeyType, ItemType>
         error: (error) => widget.errorBuilder != null
             ? widget.errorBuilder!(context, error)
             : PagingDefaultErrorWidget(
-          errorMessage: error,
-          onPressed: () async {
-            await loadPage(isRefresh: true);
-          },
-        ));
+                errorMessage: error,
+                onPressed: () async {
+                  await loadPage(isRefresh: true);
+                },
+              ));
   }
 
   Widget _buildListItemWidget({
@@ -276,10 +334,11 @@ class PagingListViewState<PageKeyType, ItemType>
       if (!dataSource.isEndList && isBuildingTriggerIndexItem) {
         // Schedules the request for the end of this frame.
         WidgetsBinding.instance.addPostFrameCallback((_) async {
+          requestNextPage();
+          print('requestNextPage:');
           await loadPage();
           // _pagingController.notifyPageRequestListeners(_nextKey!);
         });
-        requestNextPage();
       }
     }
 
@@ -386,9 +445,10 @@ class PagingListViewState<PageKeyType, ItemType>
         items.length,
         statusIndicatorBuilder: (_) =>
             (widget.newPageProgressIndicatorBuilder != null)
-                ? widget.newPageProgressIndicatorBuilder!(context, () async {
-                    await loadPage();
-                  })
+                ? widget.addItemBuilder!(context,  (newItem) => addItem(newItem))
+            // widget.newPageProgressIndicatorBuilder!(context, () async {
+            //         await loadPage();
+            //       })
                 : const NewPageProgressIndicator(),
       ),
       errorListingBuilder: (_) => _buildSliverList(

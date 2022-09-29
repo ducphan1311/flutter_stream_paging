@@ -21,3 +21,13 @@
 
 # 1.0.8
 - doc: remove flutter_bloc
+
+# 1.0.9
+- doc: fix flow requestNextPage()
+
+# 1.0.10
+- doc: add CancelableOperation logic
+
+# 1.0.11
+- doc: hot fix padding
+

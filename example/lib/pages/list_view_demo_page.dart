@@ -94,6 +94,7 @@ class ListViewDemoPageState extends State<ListViewDemoPage> {
           ],
         );
       } : null,
+      padding: EdgeInsets.only(top: 30),
     );
   }
 }

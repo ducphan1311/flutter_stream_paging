@@ -114,6 +114,8 @@ class _PagingGridViewState<PageKeyType, ItemType>
   late DataSource<PageKeyType, ItemType> dataSource;
 
   Future loadPage({PageKeyType? nextPageKey, bool isRefresh = false}) async {
+    print('loadPage:grid');
+
     var items = _pagingState.maybeMap((value) => value.items, orElse: () => null);
     await dataSource.loadPage(isRefresh: isRefresh).then((value) {
       int? itemCount = isRefresh
@@ -235,10 +237,10 @@ class _PagingGridViewState<PageKeyType, ItemType>
       if (!dataSource.isEndList && isBuildingTriggerIndexItem) {
         // Schedules the request for the end of this frame.
         WidgetsBinding.instance.addPostFrameCallback((_) async {
+          requestNextPage();
           await loadPage();
           // _pagingController.notifyPageRequestListeners(_nextKey!);
         });
-        requestNextPage();
       }
     }
 
