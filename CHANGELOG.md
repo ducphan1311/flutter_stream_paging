@@ -31,3 +31,6 @@
 # 1.0.11
 - doc: hot fix padding
 
+# 1.0.12
+- doc: hot fix padding
+
