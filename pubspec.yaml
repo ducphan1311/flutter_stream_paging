@@ -1,6 +1,6 @@
 name: flutter_stream_paging
 description: Support paging using stream & datasource
-version: 1.0.12
+version: 1.0.13
 homepage: https://github.com/ducphan1311/flutter_stream_paging
 repository: https://github.com/ducphan1311/flutter_stream_paging
 issue_tracker: https://github.com/ducphan1311/flutter_stream_paging/issues
@@ -15,7 +15,7 @@ dependencies:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
   cupertino_icons: ^1.0.2
-  freezed_annotation: ^0.14.1
+  freezed_annotation: ^2.4.1
   tuple: ^2.0.0
   async: ^2.5.0
   sliver_tools: ^0.2.8
@@ -25,9 +25,9 @@ dev_dependencies:
     sdk: flutter
   flutter_gen_runner:
   json_serializable:
-  build_runner: ^1.12.2
-  freezed: ^0.14.1+2
-  flutter_lints: ^2.0.0
+  build_runner:
+  freezed:
+  flutter_lints:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
