@@ -34,3 +34,6 @@
 # 1.0.12
 - doc: hot fix padding
 
+# 1.0.13
+- doc: upgrade flutter sdk version to 3.13.3
+
