@@ -92,7 +92,7 @@ class PagingGridView<PageKeyType, ItemType>
   final WidgetBuilder? newPageErrorIndicatorBuilder;
   final WidgetBuilder? newPageCompletedIndicatorBuilder;
   final WidgetBuilder? newPageProgressIndicatorBuilder;
-  final AddItemWidgetBuilder? addItemBuilder;
+  final AddItemWidgetBuilder<ItemType>? addItemBuilder;
 
   @override
   State<PagingGridView<PageKeyType, ItemType>> createState() =>
@@ -116,13 +116,14 @@ class _PagingGridViewState<PageKeyType, ItemType>
   Future loadPage({PageKeyType? nextPageKey, bool isRefresh = false}) async {
     print('loadPage:grid');
 
-    var items = _pagingState.maybeMap((value) => value.items, orElse: () => null);
+    var items =
+        _pagingState.maybeMap((value) => value.items, orElse: () => null);
     await dataSource.loadPage(isRefresh: isRefresh).then((value) {
       int? itemCount = isRefresh
-      ? [...value].length
+          ? [...value].length
           : items != null
-      ? [...items, ...value].length
-          : [...value].length;
+              ? [...items, ...value].length
+              : [...value].length;
 
       bool hasNextPage = dataSource.currentKey != null && !dataSource.isEndList;
 
@@ -136,22 +137,22 @@ class _PagingGridViewState<PageKeyType, ItemType>
 
       /// The current pagination status.
       PagingStatus status =
-      (isOngoing) ? PagingStatus.ongoing : PagingStatus.completed;
+          (isOngoing) ? PagingStatus.ongoing : PagingStatus.completed;
 
       emit(PagingState<PageKeyType, ItemType>(
-      isRefresh
-      ? [...value]
-          : items != null
-      ? [...items, ...value]
-          : [...value],
-      status,
-      false));
+          isRefresh
+              ? [...value]
+              : items != null
+                  ? [...items, ...value]
+                  : [...value],
+          status,
+          false));
     }, onError: (e) {
       if (dataSource.currentKey == null) {
         emit(PagingState<PageKeyType, ItemType>.error(e));
       } else {
         _pagingState.maybeMap(
-                (value) => emit(PagingState<PageKeyType, ItemType>(
+            (value) => emit(PagingState<PageKeyType, ItemType>(
                 value.items, PagingStatus.noItemsFound, true)),
             orElse: () => null);
       }
@@ -183,10 +184,11 @@ class _PagingGridViewState<PageKeyType, ItemType>
 
   void requestNextPage({bool hasRequestNextPage = true}) {
     _pagingState.maybeMap(
-            (value) => emit(PagingState<PageKeyType, ItemType>(
+        (value) => emit(PagingState<PageKeyType, ItemType>(
             value.items, value.status, hasRequestNextPage)),
         orElse: () => null);
   }
+
   @override
   void initState() {
     super.initState();
@@ -199,18 +201,15 @@ class _PagingGridViewState<PageKeyType, ItemType>
     return _pagingState.when((items, status, hasRequestNextPage) {
       return widget.addItemBuilder != null
           ? Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child:
-            _pagingSilverBuilder(items: items, status: status),
-          ),
-          if (widget.addItemBuilder != null)
-            widget.addItemBuilder!(
-                context, (newItem) => addItem(newItem))
-        ],
-      )
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: _pagingSilverBuilder(items: items, status: status),
+                ),
+                widget.addItemBuilder!(context, (newItem) => addItem(newItem))
+              ],
+            )
           : _pagingSilverBuilder(items: items, status: status);
     },
         loading: () => (widget.loadingBuilder != null)

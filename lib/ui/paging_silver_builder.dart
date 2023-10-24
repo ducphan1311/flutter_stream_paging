@@ -87,7 +87,11 @@ class PagingSilverBuilder<PageKeyType, ItemType> extends CustomScrollView {
         child = errorListingBuilder(context);
     }
     return [
-      refreshBuilder(context),
+      reverse
+          ? const SliverToBoxAdapter(
+              child: SizedBox(),
+            )
+          : refreshBuilder(context),
       SliverToBoxAdapter(
         child: Container(
           padding: padding,
@@ -98,7 +102,7 @@ class PagingSilverBuilder<PageKeyType, ItemType> extends CustomScrollView {
               duration: builderDelegate.transitionDuration,
               child: child,
             )
-          : child
+          : child,
     ];
   }
 }

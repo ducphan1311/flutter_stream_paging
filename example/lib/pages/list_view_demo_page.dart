@@ -33,6 +33,7 @@ class ListViewDemoPageState extends State<ListViewDemoPage> {
   Widget build(BuildContext context) {
     return PagingListView<int, Note>.separated(
       key: key,
+      reverse: true,
       builderDelegate: PagedChildBuilderDelegate<Note>(
         itemBuilder: (context, data, child, onUpdate, onDelete) {
           return Column(
@@ -75,11 +76,11 @@ class ListViewDemoPageState extends State<ListViewDemoPage> {
         height: 20,
       ),
       errorBuilder: (_, err) => const SizedBox(),
-      newPageProgressIndicatorBuilder: (_, onPressed) {
-        return ElevatedButton(
-            onPressed: onPressed, child: const Text('loadmore'));
-      },
-      invisibleItemsThreshold: 0,
+      // newPageProgressIndicatorBuilder: (_, onPressed) {
+      //   return ElevatedButton(
+      //       onPressed: onPressed, child: const Text('loadmore'));
+      // },
+      invisibleItemsThreshold: 3,
       addItemBuilder: widget.buildFirstPage ? (context, onAddItem) {
         return Row(
           children: [
@@ -94,7 +95,7 @@ class ListViewDemoPageState extends State<ListViewDemoPage> {
           ],
         );
       } : null,
-      padding: EdgeInsets.only(top: 30),
+      // padding: EdgeInsets.only(top: 30),
     );
   }
 }

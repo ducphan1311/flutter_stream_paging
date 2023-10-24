@@ -37,3 +37,6 @@
 # 1.0.13
 - doc: upgrade flutter sdk version to 3.13.3
 
+# 1.0.14
+- doc: change UI addItemBuilder
+

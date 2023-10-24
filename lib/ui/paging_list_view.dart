@@ -126,7 +126,7 @@ class PagingListView<PageKeyType, ItemType>
   final WidgetBuilder? newPageErrorIndicatorBuilder;
   final WidgetBuilder? newPageCompletedIndicatorBuilder;
   final NewPageWidgetBuilder? newPageProgressIndicatorBuilder;
-  final AddItemWidgetBuilder? addItemBuilder;
+  final AddItemWidgetBuilder<ItemType>? addItemBuilder;
 
   @override
   PagingListViewState<PageKeyType, ItemType> createState() =>
@@ -246,7 +246,7 @@ class PagingListViewState<PageKeyType, ItemType>
 
   void addItem(ItemType newItem) {
     _pagingState.maybeMap((value) {
-      var items = [...value.items, newItem];
+      var items = [newItem, ...value.items];
       emit(PagingStateData(items, value.status, value.hasRequestNextPage));
     }, orElse: () => null);
   }
@@ -289,20 +289,19 @@ class PagingListViewState<PageKeyType, ItemType>
   Widget build(BuildContext context) {
     return _pagingState.when((items, status, hasRequestNextPage) {
       return
-        // widget.addItemBuilder != null
-        //   ? Column(
-        //       crossAxisAlignment: CrossAxisAlignment.start,
-        //       mainAxisSize: MainAxisSize.min,
-        //       children: [
-        //         Expanded(
-        //           child: _pagingSilverBuilder(items: items, status: status),
-        //         ),
-        //         if (widget.addItemBuilder != null)
-        //           widget.addItemBuilder!(context, (newItem) => addItem(newItem))
-        //       ],
-        //     )
-        //   :
-        _pagingSilverBuilder(items: items, status: status);
+          widget.addItemBuilder != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                    child: _pagingSilverBuilder(items: items, status: status),
+                  ),
+                  widget.addItemBuilder!(context, (newItem) => addItem(newItem))
+                ],
+              )
+            :
+          _pagingSilverBuilder(items: items, status: status);
     },
         loading: () => (widget.loadingBuilder != null)
             ? widget.loadingBuilder!(context)
@@ -445,10 +444,9 @@ class PagingListViewState<PageKeyType, ItemType>
         items.length,
         statusIndicatorBuilder: (_) =>
             (widget.newPageProgressIndicatorBuilder != null)
-                ? widget.addItemBuilder!(context,  (newItem) => addItem(newItem))
-            // widget.newPageProgressIndicatorBuilder!(context, () async {
-            //         await loadPage();
-            //       })
+                ? widget.newPageProgressIndicatorBuilder!(context, () async {
+                    await loadPage();
+                  })
                 : const NewPageProgressIndicator(),
       ),
       errorListingBuilder: (_) => _buildSliverList(
