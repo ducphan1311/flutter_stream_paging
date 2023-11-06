@@ -43,3 +43,6 @@
 # 1.0.15
 - doc: add data to SeparatorBuilder
 
+# 1.0.16
+- doc: add dataList to itemBuilder
+

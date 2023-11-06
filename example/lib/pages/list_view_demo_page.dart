@@ -37,7 +37,7 @@ class ListViewDemoPageState extends State<ListViewDemoPage> {
       key: key,
       reverse: true,
       builderDelegate: PagedChildBuilderDelegate<Note>(
-        itemBuilder: (context, data, child, onUpdate, onDelete) {
+        itemBuilder: (context, data, child, onUpdate, onDelete, dataList) {
           return Column(
             children: [
               NoteWidget(

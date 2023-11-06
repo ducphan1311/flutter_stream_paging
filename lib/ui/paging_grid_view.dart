@@ -246,7 +246,7 @@ class _PagingGridViewState<PageKeyType, ItemType>
     final item = itemList[index];
     return widget.builderDelegate.itemBuilder(context, item, index, (newItem) {
       copyWith(newItem, index);
-    }, () => deleteItem(index));
+    }, () => deleteItem(index), itemList);
   }
 
   WidgetBuilder _defaultRefreshBuilder(BuildContext context) {

@@ -342,7 +342,7 @@ class PagingListViewState<PageKeyType, ItemType>
     final item = itemList[index];
     return widget.builderDelegate.itemBuilder(context, item, index, (newItem) {
       copyWith(newItem, index);
-    }, () => deleteItem(index));
+    }, () => deleteItem(index), itemList);
   }
 
   SliverMultiBoxAdaptorWidget _buildSliverList(
