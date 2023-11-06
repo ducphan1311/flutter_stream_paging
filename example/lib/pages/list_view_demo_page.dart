@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_stream_paging/fl_stream_paging.dart';
 import 'package:flutter_stream_paging_example/datasource/list_view_page.dart';
@@ -72,9 +74,11 @@ class ListViewDemoPageState extends State<ListViewDemoPage> {
       pageDataSource: dataSource,
       shrinkWrap: widget.shrinkWrap,
       physics: widget.physics,
-      separatorBuilder: (_, index) => const SizedBox(
-        height: 20,
-      ),
+      separatorBuilder: (_, index, item, items) {
+        return const SizedBox(
+          height: 20,
+        );
+      },
       errorBuilder: (_, err) => const SizedBox(),
       // newPageProgressIndicatorBuilder: (_, onPressed) {
       //   return ElevatedButton(

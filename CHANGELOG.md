@@ -40,3 +40,6 @@
 # 1.0.14
 - doc: change UI addItemBuilder
 
+# 1.0.15
+- doc: add data to SeparatorBuilder
+

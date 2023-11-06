@@ -62,7 +62,7 @@ class PagingListView<PageKeyType, ItemType>
     Key? key,
     this.isEnablePullToRefresh = true,
     this.padding = EdgeInsets.zero,
-    required IndexedWidgetBuilder separatorBuilder,
+    required SeparatorBuilder<ItemType> separatorBuilder,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
     this.controller,
@@ -100,7 +100,7 @@ class PagingListView<PageKeyType, ItemType>
         );
 
   final widgets.EdgeInsets padding;
-  final IndexedWidgetBuilder? _separatorBuilder;
+  final SeparatorBuilder<ItemType>? _separatorBuilder;
   final Axis scrollDirection;
   final bool reverse;
   final bool isEnablePullToRefresh;
@@ -288,20 +288,18 @@ class PagingListViewState<PageKeyType, ItemType>
   @override
   Widget build(BuildContext context) {
     return _pagingState.when((items, status, hasRequestNextPage) {
-      return
-          widget.addItemBuilder != null
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Expanded(
-                    child: _pagingSilverBuilder(items: items, status: status),
-                  ),
-                  widget.addItemBuilder!(context, (newItem) => addItem(newItem))
-                ],
-              )
-            :
-          _pagingSilverBuilder(items: items, status: status);
+      return widget.addItemBuilder != null
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: _pagingSilverBuilder(items: items, status: status),
+                ),
+                widget.addItemBuilder!(context, (newItem) => addItem(newItem))
+              ],
+            )
+          : _pagingSilverBuilder(items: items, status: status);
     },
         loading: () => (widget.loadingBuilder != null)
             ? widget.loadingBuilder!(context)
@@ -351,11 +349,13 @@ class PagingListViewState<PageKeyType, ItemType>
     IndexedWidgetBuilder itemBuilder,
     int itemCount, {
     WidgetBuilder? statusIndicatorBuilder,
+    IndexedWidgetBuilder? separatorBuilder,
   }) {
     final delegate = _buildSliverDelegate(
       itemBuilder,
       itemCount,
       statusIndicatorBuilder: statusIndicatorBuilder,
+      separatorBuilder: separatorBuilder,
     );
 
     final itemExtent = widget.itemExtent;
@@ -374,8 +374,8 @@ class PagingListViewState<PageKeyType, ItemType>
     IndexedWidgetBuilder itemBuilder,
     int itemCount, {
     WidgetBuilder? statusIndicatorBuilder,
+    IndexedWidgetBuilder? separatorBuilder,
   }) {
-    final separatorBuilder = widget._separatorBuilder;
     return separatorBuilder == null
         ? AppendedSliverChildBuilderDelegate(
             builder: itemBuilder,
@@ -433,6 +433,9 @@ class PagingListViewState<PageKeyType, ItemType>
         ),
         items.length,
         statusIndicatorBuilder: widget.newPageCompletedIndicatorBuilder,
+        separatorBuilder: (context, index) => widget._separatorBuilder != null
+            ? widget._separatorBuilder!(context, index, items[index], items)
+            : const SizedBox(),
       ),
       loadingListingBuilder: (_) => _buildSliverList(
         (context, index) => _buildListItemWidget(
@@ -448,6 +451,9 @@ class PagingListViewState<PageKeyType, ItemType>
                     await loadPage();
                   })
                 : const NewPageProgressIndicator(),
+        separatorBuilder: (context, index) => widget._separatorBuilder != null
+            ? widget._separatorBuilder!(context, index, items[index], items)
+            : const SizedBox(),
       ),
       errorListingBuilder: (_) => _buildSliverList(
         (context, index) => _buildListItemWidget(
@@ -458,6 +464,9 @@ class PagingListViewState<PageKeyType, ItemType>
         ),
         items.length,
         statusIndicatorBuilder: widget.newPageErrorIndicatorBuilder,
+        separatorBuilder: (context, index) => widget._separatorBuilder != null
+            ? widget._separatorBuilder!(context, index, items[index], items)
+            : const SizedBox(),
       ),
       status: status,
       refreshBuilder: (_) => widget.isEnablePullToRefresh

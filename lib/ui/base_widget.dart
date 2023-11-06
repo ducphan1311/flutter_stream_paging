@@ -9,6 +9,13 @@ typedef PaginationBuilder<T> = Future<List<T>> Function(int page);
 
 typedef ErrorBuilder<T> = T Function(BuildContext context, Object error);
 
+typedef SeparatorBuilder<ItemType> = Widget Function(
+  BuildContext context,
+  int index,
+  ItemType item,
+  List<ItemType> items,
+);
+
 abstract class BaseWidget<PageKeyType, ItemType> extends StatefulWidget {
   /// Signature for a function that creates a widget empty
   final WidgetBuilder? emptyBuilder;
@@ -27,6 +34,9 @@ abstract class BaseWidget<PageKeyType, ItemType> extends StatefulWidget {
   /// DataSource for current ScrollView [ListView - GridView]
   final DataSource<PageKeyType, ItemType> pageDataSource;
 
+  /// Signature for a function that creates a widget for separator item
+  final SeparatorBuilder<ItemType>? separatorBuilder;
+
   const BaseWidget(
       {Key? key,
       this.emptyBuilder,
@@ -34,6 +44,7 @@ abstract class BaseWidget<PageKeyType, ItemType> extends StatefulWidget {
       this.errorBuilder,
       required this.builderDelegate,
       required this.pageDataSource,
-      this.refreshBuilder})
+      this.refreshBuilder,
+      this.separatorBuilder})
       : super(key: key);
 }
