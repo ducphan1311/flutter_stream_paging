@@ -46,4 +46,7 @@
 # 1.0.16
 - doc: add dataList to itemBuilder
 
+# 1.0.17
+- Upgrade flutter 3.22.0
+
 

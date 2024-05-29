@@ -21,7 +21,7 @@ class NoteGridWidget extends StatelessWidget {
             note.title,
             style: Theme.of(context)
                 .textTheme
-                .subtitle1!
+                .labelMedium!
                 .copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(
@@ -29,7 +29,7 @@ class NoteGridWidget extends StatelessWidget {
           ),
           Text(
             note.content,
-            style: Theme.of(context).textTheme.bodyText2,
+            style: Theme.of(context).textTheme.bodyMedium,
           )
         ],
       ),
