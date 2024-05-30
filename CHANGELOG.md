@@ -49,4 +49,7 @@
 # 1.0.17
 - Upgrade flutter 3.22.0
 
+# 1.0.18
+- Optimize & maintain structure
+
 

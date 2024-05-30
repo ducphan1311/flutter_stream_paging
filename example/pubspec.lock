@@ -76,7 +76,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.17"
+    version: "1.0.18"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -162,14 +162,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.0"
-  plugin_platform_interface:
-    dependency: transitive
-    description:
-      name: plugin_platform_interface
-      sha256: da3fdfeccc4d4ff2da8f8c556704c08f912542c5fb3cf2233ed75372384a034d
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.6"
   sky_engine:
     dependency: transitive
     description: flutter
