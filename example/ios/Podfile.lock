@@ -1,21 +1,15 @@
 PODS:
   - Flutter (1.0.0)
-  - flutter_stream_paging (0.0.1):
-    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
-  - flutter_stream_paging (from `.symlinks/plugins/flutter_stream_paging/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
-  flutter_stream_paging:
-    :path: ".symlinks/plugins/flutter_stream_paging/ios"
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_stream_paging: f286062a28282a155de834344e09e9e1defaf952
 
 PODFILE CHECKSUM: c4c93c5f6502fe2754f48404d3594bf779584011
 

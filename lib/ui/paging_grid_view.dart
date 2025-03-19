@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter_stream_paging/fl_stream_paging.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -96,12 +98,14 @@ class PagingGridView<PageKeyType, ItemType>
 
   @override
   State<PagingGridView<PageKeyType, ItemType>> createState() =>
-      _PagingGridViewState<PageKeyType, ItemType>();
+      PagingGridViewState<PageKeyType, ItemType>();
 }
 
-class _PagingGridViewState<PageKeyType, ItemType>
+class PagingGridViewState<PageKeyType, ItemType>
     extends State<PagingGridView<PageKeyType, ItemType>> {
   PagingState<PageKeyType, ItemType> _pagingState = const PagingState.loading();
+  List<ItemType> get data =>
+      _pagingState.maybeMap((data) => data.items, orElse: () => <ItemType>[]);
 
   void emit(PagingState<PageKeyType, ItemType> state) {
     if (mounted) {
@@ -114,11 +118,11 @@ class _PagingGridViewState<PageKeyType, ItemType>
   late DataSource<PageKeyType, ItemType> dataSource;
 
   Future loadPage({PageKeyType? nextPageKey, bool isRefresh = false}) async {
-    print('loadPage:grid');
-
+    print('loadPage: $isRefresh');
     var items =
         _pagingState.maybeMap((value) => value.items, orElse: () => null);
-    await dataSource.loadPage(isRefresh: isRefresh).then((value) {
+    await dataSource.loadPage(isRefresh: isRefresh, newKey: nextPageKey).then(
+        (value) {
       int? itemCount = isRefresh
           ? [...value].length
           : items != null
@@ -198,7 +202,7 @@ class _PagingGridViewState<PageKeyType, ItemType>
 
   @override
   Widget build(BuildContext context) {
-    return _pagingState.when((items, status, hasRequestNextPage) {
+    Widget child = _pagingState.when((items, status, hasRequestNextPage) {
       return widget.addItemBuilder != null
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,6 +222,13 @@ class _PagingGridViewState<PageKeyType, ItemType>
         error: (error) => widget.errorBuilder != null
             ? widget.errorBuilder!(context, error)
             : ErrorWidget(error));
+    if (Platform.isAndroid && !widget.reverse) {
+      return RefreshIndicator(child: child, onRefresh: () async {
+        return await loadPage(isRefresh: true);
+      });
+    } else {
+      return child;
+    }
   }
 
   Widget _buildListItemWidget(
@@ -261,73 +272,81 @@ class _PagingGridViewState<PageKeyType, ItemType>
 
   Widget _pagingSilverBuilder(
       {required List<ItemType> items, required PagingStatus status}) {
-    return PagingSilverBuilder<PageKeyType, ItemType>(
-      builderDelegate: widget.builderDelegate,
-      padding: widget.padding,
-      scrollDirection: widget.scrollDirection,
-      reverse: widget.reverse,
-      controller: widget.controller,
-      primary: widget.primary,
-      physics: widget.physics,
-      shrinkWrap: widget.shrinkWrap,
-      addRepaintBoundaries: widget.addRepaintBoundaries,
-      addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
-      addSemanticIndexes: widget.addSemanticIndexes,
-      cacheExtent: widget.cacheExtent,
-      dragStartBehavior: widget.dragStartBehavior,
-      keyboardDismissBehavior: widget.keyboardDismissBehavior,
-      completedListingBuilder: (_) => _AppendedSliverGrid(
-        gridDelegate: widget.gridDelegate,
-        itemBuilder: (context, index) => _buildListItemWidget(
-          context: context,
-          index: index,
-          itemList: items,
-          itemCount: items.length,
-        ),
-        itemCount: items.length,
-        appendixBuilder: widget.newPageCompletedIndicatorBuilder,
-        showAppendixAsGridChild: widget.showNoMoreItemsIndicatorAsGridChild,
-        addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
-        addSemanticIndexes: widget.addSemanticIndexes,
-        addRepaintBoundaries: widget.addRepaintBoundaries,
-      ),
-      loadingListingBuilder: (_) => _AppendedSliverGrid(
-        gridDelegate: widget.gridDelegate,
-        itemBuilder: (context, index) => _buildListItemWidget(
-          context: context,
-          index: index,
-          itemList: items,
-          itemCount: items.length,
-        ),
-        itemCount: items.length,
-        appendixBuilder: (_) => (widget.newPageProgressIndicatorBuilder != null)
-            ? widget.newPageProgressIndicatorBuilder!(context)
-            : const NewPageProgressIndicator(),
-        showAppendixAsGridChild: widget.showNewPageProgressIndicatorAsGridChild,
-        addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
-        addSemanticIndexes: widget.addSemanticIndexes,
-        addRepaintBoundaries: widget.addRepaintBoundaries,
-      ),
-      errorListingBuilder: (_) => _AppendedSliverGrid(
-        gridDelegate: widget.gridDelegate,
-        itemBuilder: (context, index) => _buildListItemWidget(
-          context: context,
-          index: index,
-          itemList: items,
-          itemCount: items.length,
-        ),
-        itemCount: items.length,
-        appendixBuilder: widget.newPageErrorIndicatorBuilder,
-        showAppendixAsGridChild: widget.showNewPageProgressIndicatorAsGridChild,
-        addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
-        addSemanticIndexes: widget.addSemanticIndexes,
-        addRepaintBoundaries: widget.addRepaintBoundaries,
-      ),
-      status: status,
-      refreshBuilder: (_) => widget.isEnablePullToRefresh
-          ? ((widget.refreshBuilder ?? _defaultRefreshBuilder(_))(_))
-          : const SliverToBoxAdapter(),
-    );
+    return items.isNotEmpty
+        ? PagingSilverBuilder<PageKeyType, ItemType>(
+            builderDelegate: widget.builderDelegate,
+            padding: widget.padding,
+            scrollDirection: widget.scrollDirection,
+            reverse: widget.reverse,
+            controller: widget.controller,
+            primary: widget.primary,
+            physics: widget.physics,
+            shrinkWrap: widget.shrinkWrap,
+            addRepaintBoundaries: widget.addRepaintBoundaries,
+            addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+            addSemanticIndexes: widget.addSemanticIndexes,
+            cacheExtent: widget.cacheExtent,
+            dragStartBehavior: widget.dragStartBehavior,
+            keyboardDismissBehavior: widget.keyboardDismissBehavior,
+            completedListingBuilder: (_) => _AppendedSliverGrid(
+              gridDelegate: widget.gridDelegate,
+              itemBuilder: (context, index) => _buildListItemWidget(
+                context: context,
+                index: index,
+                itemList: items,
+                itemCount: items.length,
+              ),
+              itemCount: items.length,
+              appendixBuilder: widget.newPageCompletedIndicatorBuilder,
+              showAppendixAsGridChild:
+                  widget.showNoMoreItemsIndicatorAsGridChild,
+              addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+              addSemanticIndexes: widget.addSemanticIndexes,
+              addRepaintBoundaries: widget.addRepaintBoundaries,
+            ),
+            loadingListingBuilder: (_) => _AppendedSliverGrid(
+              gridDelegate: widget.gridDelegate,
+              itemBuilder: (context, index) => _buildListItemWidget(
+                context: context,
+                index: index,
+                itemList: items,
+                itemCount: items.length,
+              ),
+              itemCount: items.length,
+              appendixBuilder: (_) =>
+                  (widget.newPageProgressIndicatorBuilder != null)
+                      ? widget.newPageProgressIndicatorBuilder!(context)
+                      : const NewPageProgressIndicator(),
+              showAppendixAsGridChild:
+                  widget.showNewPageProgressIndicatorAsGridChild,
+              addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+              addSemanticIndexes: widget.addSemanticIndexes,
+              addRepaintBoundaries: widget.addRepaintBoundaries,
+            ),
+            errorListingBuilder: (_) => _AppendedSliverGrid(
+              gridDelegate: widget.gridDelegate,
+              itemBuilder: (context, index) => _buildListItemWidget(
+                context: context,
+                index: index,
+                itemList: items,
+                itemCount: items.length,
+              ),
+              itemCount: items.length,
+              appendixBuilder: widget.newPageErrorIndicatorBuilder,
+              showAppendixAsGridChild:
+                  widget.showNewPageProgressIndicatorAsGridChild,
+              addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+              addSemanticIndexes: widget.addSemanticIndexes,
+              addRepaintBoundaries: widget.addRepaintBoundaries,
+            ),
+            status: status,
+            refreshBuilder: (_) => widget.isEnablePullToRefresh
+                ? ((widget.refreshBuilder ?? _defaultRefreshBuilder(_))(_))
+                : const SliverToBoxAdapter(),
+          )
+        : (widget.emptyBuilder != null
+            ? widget.emptyBuilder!(context)
+            : SizedBox());
   }
 }
 

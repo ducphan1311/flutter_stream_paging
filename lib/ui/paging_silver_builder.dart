@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart' as widgets;
@@ -86,12 +88,27 @@ class PagingSilverBuilder<PageKeyType, ItemType> extends CustomScrollView {
       default:
         child = errorListingBuilder(context);
     }
+    if (scrollDirection == Axis.horizontal) {
+      return [
+        SliverToBoxAdapter(
+          child: Container(
+            padding: padding,
+          ),
+        ),
+        (builderDelegate.animateTransitions)
+            ? SliverAnimatedSwitcher(
+                duration: builderDelegate.transitionDuration,
+                child: child,
+              )
+            : child,
+      ];
+    }
     return [
-      reverse
-          ? const SliverToBoxAdapter(
+      !(reverse || Platform.isAndroid)
+          ? refreshBuilder(context)
+          : const SliverToBoxAdapter(
               child: SizedBox(),
-            )
-          : refreshBuilder(context),
+            ),
       SliverToBoxAdapter(
         child: Container(
           padding: padding,
@@ -104,6 +121,5 @@ class PagingSilverBuilder<PageKeyType, ItemType> extends CustomScrollView {
             )
           : child,
     ];
-
   }
 }

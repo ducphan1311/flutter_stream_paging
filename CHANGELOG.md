@@ -52,4 +52,26 @@
 # 1.0.18
 - Optimize & maintain structure
 
+# 1.0.19
+- Fix horizontal paging & add example
+
+# 1.0.20
+- public grid state
+
+# 1.0.21
+- refresh current key
+
+# 1.0.22
+- fix refresh current key
+
+# 1.0.23
+- fix empty builder
+
+# 1.0.24
+- fix refresh
+
+
+# 1.1.1
+- optimize code & add List<ItemType> get data
+
 

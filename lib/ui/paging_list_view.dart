@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:async/async.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter_stream_paging/fl_stream_paging.dart';
 
@@ -136,6 +138,8 @@ class PagingListView<PageKeyType, ItemType>
 class PagingListViewState<PageKeyType, ItemType>
     extends State<PagingListView<PageKeyType, ItemType>> {
   PagingState<PageKeyType, ItemType> _pagingState = const PagingState.loading();
+  List<ItemType> get data =>
+      _pagingState.maybeMap((data) => data.items, orElse: () => <ItemType>[]);
   CancelableOperation? cancelableOperation;
 
   void emit(PagingState<PageKeyType, ItemType> state) {
@@ -155,7 +159,7 @@ class PagingListViewState<PageKeyType, ItemType>
     var items =
         _pagingState.maybeMap((value) => value.items, orElse: () => null);
     cancelableOperation = CancelableOperation.fromFuture(
-        dataSource.loadPage(isRefresh: isRefresh));
+        dataSource.loadPage(isRefresh: isRefresh, newKey: nextPageKey));
     cancelableOperation!.value.then((value) {
       int? itemCount = isRefresh
           ? [...value].length
@@ -195,45 +199,6 @@ class PagingListViewState<PageKeyType, ItemType>
             orElse: () => null);
       }
     });
-    // await dataSource.loadPage(isRefresh: isRefresh).then((value) {
-    //   int? itemCount = isRefresh
-    //   ? [...value].length
-    //       : items != null
-    //   ? [...items, ...value].length
-    //       : [...value].length;
-    //
-    //   bool hasNextPage = dataSource.currentKey != null && !dataSource.isEndList;
-    //
-    //   bool hasItems = itemCount > 0;
-    //
-    //   bool isListingUnfinished = hasItems && hasNextPage;
-    //
-    //   bool isOngoing = isListingUnfinished;
-    //
-    //   bool isCompleted = hasItems && !hasNextPage;
-    //
-    //   /// The current pagination status.
-    //   PagingStatus status =
-    //   (isOngoing) ? PagingStatus.ongoing : PagingStatus.completed;
-    //
-    //   emit(PagingState<PageKeyType, ItemType>(
-    //   isRefresh
-    //   ? [...value]
-    //       : items != null
-    //   ? [...items, ...value]
-    //       : [...value],
-    //   status,
-    //   false));
-    // }, onError: (e) {
-    //   if (dataSource.currentKey == null) {
-    //     emit(PagingState<PageKeyType, ItemType>.error(e));
-    //   } else {
-    //     _pagingState.maybeMap(
-    //             (value) => emit(PagingState<PageKeyType, ItemType>(
-    //             value.items, PagingStatus.noItemsFound, true)),
-    //         orElse: () => null);
-    //   }
-    // });
   }
 
   void copyWith(ItemType newItem, int index) {
@@ -287,7 +252,7 @@ class PagingListViewState<PageKeyType, ItemType>
 
   @override
   Widget build(BuildContext context) {
-    return _pagingState.when((items, status, hasRequestNextPage) {
+    final child = _pagingState.when((items, status, hasRequestNextPage) {
       return widget.addItemBuilder != null
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -312,6 +277,15 @@ class PagingListViewState<PageKeyType, ItemType>
                   await loadPage(isRefresh: true);
                 },
               ));
+    if (Platform.isAndroid && !widget.reverse) {
+      return RefreshIndicator(
+          child: child,
+          onRefresh: () async {
+            return await loadPage(isRefresh: true);
+          });
+    } else {
+      return child;
+    }
   }
 
   Widget _buildListItemWidget({
@@ -409,69 +383,80 @@ class PagingListViewState<PageKeyType, ItemType>
 
   Widget _pagingSilverBuilder(
       {required List<ItemType> items, required PagingStatus status}) {
-    return PagingSilverBuilder<PageKeyType, ItemType>(
-      builderDelegate: widget.builderDelegate,
-      padding: widget.padding,
-      scrollDirection: widget.scrollDirection,
-      reverse: widget.reverse,
-      controller: widget.controller,
-      primary: widget.primary,
-      physics: widget.physics,
-      shrinkWrap: widget.shrinkWrap,
-      addRepaintBoundaries: widget.addRepaintBoundaries,
-      addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
-      addSemanticIndexes: widget.addSemanticIndexes,
-      cacheExtent: widget.cacheExtent,
-      dragStartBehavior: widget.dragStartBehavior,
-      keyboardDismissBehavior: widget.keyboardDismissBehavior,
-      completedListingBuilder: (_) => _buildSliverList(
-        (context, index) => _buildListItemWidget(
-          context: context,
-          index: index,
-          itemList: items,
-          itemCount: items.length,
-        ),
-        items.length,
-        statusIndicatorBuilder: widget.newPageCompletedIndicatorBuilder,
-        separatorBuilder: (context, index) => widget._separatorBuilder != null
-            ? widget._separatorBuilder!(context, index, items[index], items)
-            : const SizedBox(),
-      ),
-      loadingListingBuilder: (_) => _buildSliverList(
-        (context, index) => _buildListItemWidget(
-          context: context,
-          index: index,
-          itemList: items,
-          itemCount: items.length,
-        ),
-        items.length,
-        statusIndicatorBuilder: (_) =>
-            (widget.newPageProgressIndicatorBuilder != null)
-                ? widget.newPageProgressIndicatorBuilder!(context, () async {
-                    await loadPage();
-                  })
-                : const NewPageProgressIndicator(),
-        separatorBuilder: (context, index) => widget._separatorBuilder != null
-            ? widget._separatorBuilder!(context, index, items[index], items)
-            : const SizedBox(),
-      ),
-      errorListingBuilder: (_) => _buildSliverList(
-        (context, index) => _buildListItemWidget(
-          context: context,
-          index: index,
-          itemList: items,
-          itemCount: items.length,
-        ),
-        items.length,
-        statusIndicatorBuilder: widget.newPageErrorIndicatorBuilder,
-        separatorBuilder: (context, index) => widget._separatorBuilder != null
-            ? widget._separatorBuilder!(context, index, items[index], items)
-            : const SizedBox(),
-      ),
-      status: status,
-      refreshBuilder: (_) => widget.isEnablePullToRefresh
-          ? ((widget.refreshBuilder ?? _defaultRefreshBuilder(_))(_))
-          : const SliverToBoxAdapter(),
-    );
+    return items.isNotEmpty
+        ? PagingSilverBuilder<PageKeyType, ItemType>(
+            builderDelegate: widget.builderDelegate,
+            padding: widget.padding,
+            scrollDirection: widget.scrollDirection,
+            reverse: widget.reverse,
+            controller: widget.controller,
+            primary: widget.primary,
+            physics: widget.physics,
+            shrinkWrap: widget.shrinkWrap,
+            addRepaintBoundaries: widget.addRepaintBoundaries,
+            addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+            addSemanticIndexes: widget.addSemanticIndexes,
+            cacheExtent: widget.cacheExtent,
+            dragStartBehavior: widget.dragStartBehavior,
+            keyboardDismissBehavior: widget.keyboardDismissBehavior,
+            completedListingBuilder: (_) => _buildSliverList(
+              (context, index) => _buildListItemWidget(
+                context: context,
+                index: index,
+                itemList: items,
+                itemCount: items.length,
+              ),
+              items.length,
+              statusIndicatorBuilder: widget.newPageCompletedIndicatorBuilder,
+              separatorBuilder: (context, index) =>
+                  widget._separatorBuilder != null
+                      ? widget._separatorBuilder!(
+                          context, index, items[index], items)
+                      : const SizedBox(),
+            ),
+            loadingListingBuilder: (_) => _buildSliverList(
+              (context, index) => _buildListItemWidget(
+                context: context,
+                index: index,
+                itemList: items,
+                itemCount: items.length,
+              ),
+              items.length,
+              statusIndicatorBuilder: (_) => (widget
+                          .newPageProgressIndicatorBuilder !=
+                      null)
+                  ? widget.newPageProgressIndicatorBuilder!(context, () async {
+                      await loadPage();
+                    })
+                  : const NewPageProgressIndicator(),
+              separatorBuilder: (context, index) =>
+                  widget._separatorBuilder != null
+                      ? widget._separatorBuilder!(
+                          context, index, items[index], items)
+                      : const SizedBox(),
+            ),
+            errorListingBuilder: (_) => _buildSliverList(
+              (context, index) => _buildListItemWidget(
+                context: context,
+                index: index,
+                itemList: items,
+                itemCount: items.length,
+              ),
+              items.length,
+              statusIndicatorBuilder: widget.newPageErrorIndicatorBuilder,
+              separatorBuilder: (context, index) =>
+                  widget._separatorBuilder != null
+                      ? widget._separatorBuilder!(
+                          context, index, items[index], items)
+                      : const SizedBox(),
+            ),
+            status: status,
+            refreshBuilder: (_) => widget.isEnablePullToRefresh
+                ? ((widget.refreshBuilder ?? _defaultRefreshBuilder(_))(_))
+                : const SliverToBoxAdapter(),
+          )
+        : (widget.emptyBuilder != null
+            ? widget.emptyBuilder!(context)
+            : SizedBox());
   }
 }

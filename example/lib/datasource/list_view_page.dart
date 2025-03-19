@@ -11,7 +11,7 @@ class ListViewDataSource extends DataSource<int, Note> {
   ListViewDataSource(this.noteRepository);
 
   @override
-  Future<Tuple2<List<Note>, int>> loadInitial(int pageSize) async {
+  Future<Tuple2<List<Note>, int>> loadInitial(int pageSize, {int? refreshKey}) async {
     return Tuple2(await noteRepository.getNotes(0), 1);
   }
 

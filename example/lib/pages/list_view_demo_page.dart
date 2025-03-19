@@ -99,6 +99,7 @@ class ListViewDemoPageState extends State<ListViewDemoPage> {
           ],
         );
       } : null,
+      emptyBuilder: (_) => SizedBox(width: double.infinity, height: double.infinity, child: Center(child: Text('empty'),),),
       // padding: EdgeInsets.only(top: 30),
     );
   }

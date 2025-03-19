@@ -160,7 +160,7 @@ class _$PagingStateData<PageKeyType, ItemType>
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other is PagingStateData<PageKeyType, ItemType> &&
             (identical(other.items, items) ||
@@ -290,7 +290,7 @@ class _$PagingStateLoading<PageKeyType, ItemType>
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other is PagingStateLoading<PageKeyType, ItemType>);
   }

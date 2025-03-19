@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_stream_paging_example/pages/horizontal_list_view_demo_page.dart';
 import 'package:flutter_stream_paging_example/pages/list_view_demo_page.dart';
 import 'package:flutter_stream_paging_example/pages/grid_view_demo_page.dart';
 
@@ -22,6 +23,11 @@ class HomePageState extends State<HomePage> {
       label: 'GridView',
       iconData: Icons.grid_view,
       widgetBuilder: (context) => const GridViewDemoPage(),
+    ),
+    _BottomNavigationItem(
+      label: 'HorizontalListView',
+      iconData: Icons.horizontal_distribute,
+      widgetBuilder: (context) => const HorizontalListViewDemoPage(),
     ),
   ];
 
