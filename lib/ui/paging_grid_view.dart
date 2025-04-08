@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter_stream_paging/fl_stream_paging.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -98,6 +99,9 @@ class PagingGridViewState<PageKeyType, ItemType>
   PagingState<PageKeyType, ItemType> _pagingState = const PagingState.loading();
   late DataSource<PageKeyType, ItemType> dataSource;
   late final ScrollController _scrollController;
+  double _previousScrollOffset = 0;
+  // Thêm một Map để lưu trữ các key cho các item
+  final Map<int, GlobalKey> _itemKeys = {};
 
   List<ItemType> get data {
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
@@ -169,24 +173,33 @@ class PagingGridViewState<PageKeyType, ItemType>
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
       final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
 
-      // Lưu vị trí scroll hiện tại trước khi thêm item
-      final scrollPosition = _scrollController.position;
-      final currentOffset = scrollPosition.pixels ?? 0;
+      if (widget.reverse && _scrollController.hasClients) {
+        _previousScrollOffset = _scrollController.position.pixels;
+        final beforeExtent = _scrollController.position.maxScrollExtent;
 
-      var items = widget.reverse
-          ? [...value.items, newItem]  // Thêm vào cuối nếu reverse
-          : [newItem, ...value.items]; // Thêm vào đầu nếu không reverse
+        // Thêm item mới vào đầu danh sách
+        var items = [newItem, ...value.items];
+        emit(PagingStateData(items, value.status, value.hasRequestNextPage));
 
-      emit(PagingStateData(items, value.status, value.hasRequestNextPage));
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            final afterExtent = _scrollController.position.maxScrollExtent;
+            final itemSize = afterExtent - beforeExtent;
 
-      // Nếu đang ở chế độ reverse, giữ nguyên vị trí scroll sau khi thêm item
-      if (widget.reverse && scrollPosition.hasPixels) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          scrollPosition.jumpTo(currentOffset);
+            if (itemSize > 0) {
+              // Điều chỉnh vị trí cuộn dựa trên kích thước thực của viewport
+              final adjustedOffset = _previousScrollOffset + itemSize;
+              _scrollController.jumpTo(adjustedOffset);
+            }
+          }
         });
+      } else {
+        var items = [newItem, ...value.items];
+        emit(PagingStateData(items, value.status, value.hasRequestNextPage));
       }
     }
   }
+
 
   void deleteItem(int index) {
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
@@ -269,20 +282,21 @@ class PagingGridViewState<PageKeyType, ItemType>
     }
   }
 
-  Widget _buildListItemWidget(
-      {required BuildContext context,
-      required int index,
-      required List<ItemType> itemList,
-      required int itemCount}) {
+  Widget _buildListItemWidget({
+    required BuildContext context,
+    required int index,
+    required List<ItemType> itemList,
+    required int itemCount,
+  }) {
+    // Cập nhật để sử dụng pattern matching
     bool hasRequestedNextPage = false;
-    
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
       hasRequestedNextPage = (_pagingState as PagingStateData<PageKeyType, ItemType>).hasRequestNextPage;
     }
-    
+
     if (!hasRequestedNextPage) {
       final newPageRequestTriggerIndex =
-          max(0, itemCount - widget.invisibleItemsThreshold);
+      max(0, itemCount - widget.invisibleItemsThreshold);
 
       final isBuildingTriggerIndexItem = index == newPageRequestTriggerIndex;
 
@@ -291,14 +305,25 @@ class PagingGridViewState<PageKeyType, ItemType>
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           requestNextPage();
           await loadPage();
+          // _pagingController.notifyPageRequestListeners(_nextKey!);
         });
       }
     }
 
     final item = itemList[index];
-    return widget.builderDelegate.itemBuilder(context, item, index, (newItem) {
-      copyWith(newItem, index);
-    }, () => deleteItem(index), itemList);
+
+    // Tạo key cho item nếu chưa có
+    if (!_itemKeys.containsKey(index)) {
+      _itemKeys[index] = GlobalKey();
+    }
+
+    // Sử dụng key cho item
+    return KeyedSubtree(
+      key: _itemKeys[index],
+      child: widget.builderDelegate.itemBuilder(context, item, index, (newItem) {
+        copyWith(newItem, index);
+      }, () => deleteItem(index), itemList),
+    );
   }
 
   WidgetBuilder _defaultRefreshBuilder(BuildContext context) {
