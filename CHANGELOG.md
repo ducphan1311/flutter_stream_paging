@@ -74,4 +74,10 @@
 # 1.1.1
 - optimize code & add List<ItemType> get data
 
+# 1.1.2
+- optimize code
+
+# 1.1.3
+- handle scrollController when adding new item
+
 

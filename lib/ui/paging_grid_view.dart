@@ -12,7 +12,7 @@ class PagingGridView<PageKeyType, ItemType>
     extends BaseWidget<PageKeyType, ItemType> {
   static const path = '/paging_grid_view';
   const PagingGridView({
-    Key? key,
+    super.key,
     this.isEnablePullToRefresh = true,
     this.padding = EdgeInsets.zero,
     this.scrollDirection = Axis.vertical,
@@ -37,22 +37,14 @@ class PagingGridView<PageKeyType, ItemType>
     this.newPageCompletedIndicatorBuilder,
     this.newPageProgressIndicatorBuilder,
     this.addItemBuilder,
-    required PagedChildBuilderDelegate<ItemType> builderDelegate,
-    required DataSource<PageKeyType, ItemType> pageDataSource,
+    required super.builderDelegate,
+    required super.pageDataSource,
     required this.gridDelegate,
-    WidgetBuilder? emptyBuilder,
-    WidgetBuilder? loadingBuilder,
-    ErrorBuilder? errorBuilder,
-    WidgetBuilder? refreshBuilder,
-  }) : super(
-          builderDelegate: builderDelegate,
-          emptyBuilder: emptyBuilder,
-          loadingBuilder: loadingBuilder,
-          errorBuilder: errorBuilder,
-          pageDataSource: pageDataSource,
-          refreshBuilder: refreshBuilder,
-          key: key,
-        );
+    super.emptyBuilder,
+    super.loadingBuilder,
+    super.errorBuilder,
+    super.refreshBuilder,
+  });
 
   final widgets.EdgeInsets padding;
   final Axis scrollDirection;
@@ -104,23 +96,23 @@ class PagingGridView<PageKeyType, ItemType>
 class PagingGridViewState<PageKeyType, ItemType>
     extends State<PagingGridView<PageKeyType, ItemType>> {
   PagingState<PageKeyType, ItemType> _pagingState = const PagingState.loading();
-  List<ItemType> get data =>
-      _pagingState.maybeMap((data) => data.items, orElse: () => <ItemType>[]);
+  late DataSource<PageKeyType, ItemType> dataSource;
+  late final ScrollController _scrollController;
 
-  void emit(PagingState<PageKeyType, ItemType> state) {
-    if (mounted) {
-      setState(() {
-        _pagingState = state;
-      });
+  List<ItemType> get data {
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      return (_pagingState as PagingStateData<PageKeyType, ItemType>).items;
     }
+    return <ItemType>[];
   }
 
-  late DataSource<PageKeyType, ItemType> dataSource;
-
   Future loadPage({PageKeyType? nextPageKey, bool isRefresh = false}) async {
-    print('loadPage: $isRefresh');
-    var items =
-        _pagingState.maybeMap((value) => value.items, orElse: () => null);
+    List<ItemType>? items;
+    
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      items = (_pagingState as PagingStateData<PageKeyType, ItemType>).items;
+    }
+    
     await dataSource.loadPage(isRefresh: isRefresh, newKey: nextPageKey).then(
         (value) {
       int? itemCount = isRefresh
@@ -137,7 +129,7 @@ class PagingGridViewState<PageKeyType, ItemType>
 
       bool isOngoing = isListingUnfinished;
 
-      bool isCompleted = hasItems && !hasNextPage;
+      // bool isCompleted = hasItems && !hasNextPage;
 
       /// The current pagination status.
       PagingStatus status =
@@ -155,77 +147,123 @@ class PagingGridViewState<PageKeyType, ItemType>
       if (dataSource.currentKey == null) {
         emit(PagingState<PageKeyType, ItemType>.error(e));
       } else {
-        _pagingState.maybeMap(
-            (value) => emit(PagingState<PageKeyType, ItemType>(
-                value.items, PagingStatus.noItemsFound, true)),
-            orElse: () => null);
+        if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+          final stateData = _pagingState as PagingStateData<PageKeyType, ItemType>;
+          emit(PagingState<PageKeyType, ItemType>(
+              stateData.items, PagingStatus.noItemsFound, true));
+        }
       }
     });
   }
 
   void copyWith(ItemType newItem, int index) {
-    _pagingState.maybeMap((value) {
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
       var items = [...value.items];
       items[index] = newItem;
       emit(PagingStateData(items, value.status, value.hasRequestNextPage));
-    }, orElse: () => null);
+    }
   }
 
   void addItem(ItemType newItem) {
-    _pagingState.maybeMap((value) {
-      var items = [...value.items, newItem];
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
+
+      // Lưu vị trí scroll hiện tại trước khi thêm item
+      final scrollPosition = _scrollController.position;
+      final currentOffset = scrollPosition.pixels ?? 0;
+
+      var items = widget.reverse
+          ? [...value.items, newItem]  // Thêm vào cuối nếu reverse
+          : [newItem, ...value.items]; // Thêm vào đầu nếu không reverse
+
       emit(PagingStateData(items, value.status, value.hasRequestNextPage));
-    }, orElse: () => null);
+
+      // Nếu đang ở chế độ reverse, giữ nguyên vị trí scroll sau khi thêm item
+      if (widget.reverse && scrollPosition.hasPixels) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          scrollPosition.jumpTo(currentOffset);
+        });
+      }
+    }
   }
 
   void deleteItem(int index) {
-    _pagingState.maybeMap((value) {
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
       var items = [...value.items];
       items.removeWhere((element) => items.indexOf(element) == index);
       emit(PagingStateData(items, value.status, value.hasRequestNextPage));
-    }, orElse: () => null);
+    }
   }
 
   void requestNextPage({bool hasRequestNextPage = true}) {
-    _pagingState.maybeMap(
-        (value) => emit(PagingState<PageKeyType, ItemType>(
-            value.items, value.status, hasRequestNextPage)),
-        orElse: () => null);
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
+      emit(PagingState<PageKeyType, ItemType>(
+          value.items, value.status, hasRequestNextPage));
+    }
+  }
+
+  void emit(PagingState<PageKeyType, ItemType> state) {
+    if (mounted) {
+      setState(() {
+        _pagingState = state;
+      });
+    }
   }
 
   @override
   void initState() {
     super.initState();
     dataSource = widget.pageDataSource;
+    _scrollController = widget.controller ?? ScrollController();
     loadPage();
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget child = _pagingState.when((items, status, hasRequestNextPage) {
-      return widget.addItemBuilder != null
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(
-                  child: _pagingSilverBuilder(items: items, status: status),
-                ),
-                widget.addItemBuilder!(context, (newItem) => addItem(newItem))
-              ],
-            )
-          : _pagingSilverBuilder(items: items, status: status);
-    },
-        loading: () => (widget.loadingBuilder != null)
+    Widget child;
+
+    // Thay thế when bằng pattern matching
+    switch (_pagingState) {
+      case PagingStateData(items: final items, status: final status):
+        child = widget.addItemBuilder != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                    child: _pagingSilverBuilder(items: items, status: status),
+                  ),
+                  widget.addItemBuilder!(context, (newItem) => addItem(newItem))
+                ],
+              )
+            : _pagingSilverBuilder(items: items, status: status);
+        break;
+
+      case PagingStateLoading():
+        child = (widget.loadingBuilder != null)
             ? widget.loadingBuilder!(context)
-            : const PagingDefaultLoading(),
-        error: (error) => widget.errorBuilder != null
+            : const PagingDefaultLoading();
+        break;
+
+      case PagingStateError():
+        final error = (_pagingState as PagingStateError).error;
+        child = widget.errorBuilder != null
             ? widget.errorBuilder!(context, error)
-            : ErrorWidget(error));
+            : ErrorWidget(error);
+        break;
+      default:
+        child = SizedBox();
+    }
+
     if (Platform.isAndroid && !widget.reverse) {
-      return RefreshIndicator(child: child, onRefresh: () async {
-        return await loadPage(isRefresh: true);
-      });
+      return RefreshIndicator(
+          child: child,
+          onRefresh: () async {
+            return await loadPage(isRefresh: true);
+          });
     } else {
       return child;
     }
@@ -236,8 +274,12 @@ class PagingGridViewState<PageKeyType, ItemType>
       required int index,
       required List<ItemType> itemList,
       required int itemCount}) {
-    var hasRequestedNextPage = _pagingState
-        .maybeMap((value) => value.hasRequestNextPage, orElse: () => false);
+    bool hasRequestedNextPage = false;
+    
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      hasRequestedNextPage = (_pagingState as PagingStateData<PageKeyType, ItemType>).hasRequestNextPage;
+    }
+    
     if (!hasRequestedNextPage) {
       final newPageRequestTriggerIndex =
           max(0, itemCount - widget.invisibleItemsThreshold);
@@ -249,7 +291,6 @@ class PagingGridViewState<PageKeyType, ItemType>
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           requestNextPage();
           await loadPage();
-          // _pagingController.notifyPageRequestListeners(_nextKey!);
         });
       }
     }
@@ -278,7 +319,7 @@ class PagingGridViewState<PageKeyType, ItemType>
             padding: widget.padding,
             scrollDirection: widget.scrollDirection,
             reverse: widget.reverse,
-            controller: widget.controller,
+            controller: _scrollController,
             primary: widget.primary,
             physics: widget.physics,
             shrinkWrap: widget.shrinkWrap,
@@ -360,8 +401,7 @@ class _AppendedSliverGrid extends StatelessWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
-    Key? key,
-  }) : super(key: key);
+  });
 
   final SliverGridDelegate gridDelegate;
   final IndexedWidgetBuilder itemBuilder;

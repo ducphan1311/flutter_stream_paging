@@ -1,5 +1,8 @@
+// dart format width=80
+// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'paging_state.dart';
 
@@ -7,135 +10,119 @@ part of 'paging_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
-
-/// @nodoc
-class _$PagingStateTearOff {
-  const _$PagingStateTearOff();
-
-  PagingStateData<PageKeyType, ItemType> call<PageKeyType, ItemType>(
-      List<ItemType> items, PagingStatus status, bool hasRequestNextPage) {
-    return PagingStateData<PageKeyType, ItemType>(
-      items,
-      status,
-      hasRequestNextPage,
-    );
-  }
-
-  PagingStateLoading<PageKeyType, ItemType> loading<PageKeyType, ItemType>() {
-    return PagingStateLoading<PageKeyType, ItemType>();
-  }
-
-  PagingStateError<PageKeyType, ItemType> error<PageKeyType, ItemType>(
-      dynamic error) {
-    return PagingStateError<PageKeyType, ItemType>(
-      error,
-    );
-  }
-}
-
-/// @nodoc
-const $PagingState = _$PagingStateTearOff();
 
 /// @nodoc
 mixin _$PagingState<PageKeyType, ItemType> {
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)
-        $default, {
-    required TResult Function() loading,
-    required TResult Function(dynamic error) error,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)?
-        $default, {
-    TResult Function()? loading,
-    TResult Function(dynamic error)? error,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(PagingStateData<PageKeyType, ItemType> value) $default, {
-    required TResult Function(PagingStateLoading<PageKeyType, ItemType> value)
-        loading,
-    required TResult Function(PagingStateError<PageKeyType, ItemType> value)
-        error,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(PagingStateData<PageKeyType, ItemType> value)? $default, {
-    TResult Function(PagingStateLoading<PageKeyType, ItemType> value)? loading,
-    TResult Function(PagingStateError<PageKeyType, ItemType> value)? error,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PagingState<PageKeyType, ItemType>);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'PagingState<$PageKeyType, $ItemType>()';
+  }
 }
 
 /// @nodoc
-abstract class $PagingStateCopyWith<PageKeyType, ItemType, $Res> {
-  factory $PagingStateCopyWith(PagingState<PageKeyType, ItemType> value,
-          $Res Function(PagingState<PageKeyType, ItemType>) then) =
-      _$PagingStateCopyWithImpl<PageKeyType, ItemType, $Res>;
+class $PagingStateCopyWith<PageKeyType, ItemType, $Res> {
+  $PagingStateCopyWith(PagingState<PageKeyType, ItemType> _,
+      $Res Function(PagingState<PageKeyType, ItemType>) __);
 }
 
 /// @nodoc
-class _$PagingStateCopyWithImpl<PageKeyType, ItemType, $Res>
+
+class PagingStateData<PageKeyType, ItemType>
+    implements PagingState<PageKeyType, ItemType> {
+  const PagingStateData(
+      final List<ItemType> items, this.status, this.hasRequestNextPage)
+      : _items = items;
+
+  final List<ItemType> _items;
+  List<ItemType> get items {
+    if (_items is EqualUnmodifiableListView) return _items;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_items);
+  }
+
+  final PagingStatus status;
+  final bool hasRequestNextPage;
+
+  /// Create a copy of PagingState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PagingStateDataCopyWith<PageKeyType, ItemType,
+          PagingStateData<PageKeyType, ItemType>>
+      get copyWith => _$PagingStateDataCopyWithImpl<PageKeyType, ItemType,
+          PagingStateData<PageKeyType, ItemType>>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PagingStateData<PageKeyType, ItemType> &&
+            const DeepCollectionEquality().equals(other._items, _items) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.hasRequestNextPage, hasRequestNextPage) ||
+                other.hasRequestNextPage == hasRequestNextPage));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType,
+      const DeepCollectionEquality().hash(_items), status, hasRequestNextPage);
+
+  @override
+  String toString() {
+    return 'PagingState<$PageKeyType, $ItemType>(items: $items, status: $status, hasRequestNextPage: $hasRequestNextPage)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PagingStateDataCopyWith<PageKeyType, ItemType, $Res>
     implements $PagingStateCopyWith<PageKeyType, ItemType, $Res> {
-  _$PagingStateCopyWithImpl(this._value, this._then);
-
-  final PagingState<PageKeyType, ItemType> _value;
-  // ignore: unused_field
-  final $Res Function(PagingState<PageKeyType, ItemType>) _then;
-}
-
-/// @nodoc
-abstract class $PagingStateDataCopyWith<PageKeyType, ItemType, $Res> {
   factory $PagingStateDataCopyWith(PagingStateData<PageKeyType, ItemType> value,
-          $Res Function(PagingStateData<PageKeyType, ItemType>) then) =
-      _$PagingStateDataCopyWithImpl<PageKeyType, ItemType, $Res>;
+          $Res Function(PagingStateData<PageKeyType, ItemType>) _then) =
+      _$PagingStateDataCopyWithImpl;
+  @useResult
   $Res call(
       {List<ItemType> items, PagingStatus status, bool hasRequestNextPage});
 }
 
 /// @nodoc
 class _$PagingStateDataCopyWithImpl<PageKeyType, ItemType, $Res>
-    extends _$PagingStateCopyWithImpl<PageKeyType, ItemType, $Res>
     implements $PagingStateDataCopyWith<PageKeyType, ItemType, $Res> {
-  _$PagingStateDataCopyWithImpl(PagingStateData<PageKeyType, ItemType> _value,
-      $Res Function(PagingStateData<PageKeyType, ItemType>) _then)
-      : super(
-            _value, (v) => _then(v as PagingStateData<PageKeyType, ItemType>));
+  _$PagingStateDataCopyWithImpl(this._self, this._then);
 
-  @override
-  PagingStateData<PageKeyType, ItemType> get _value =>
-      super._value as PagingStateData<PageKeyType, ItemType>;
+  final PagingStateData<PageKeyType, ItemType> _self;
+  final $Res Function(PagingStateData<PageKeyType, ItemType>) _then;
 
-  @override
+  /// Create a copy of PagingState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
   $Res call({
-    Object? items = freezed,
-    Object? status = freezed,
-    Object? hasRequestNextPage = freezed,
+    Object? items = null,
+    Object? status = null,
+    Object? hasRequestNextPage = null,
   }) {
     return _then(PagingStateData<PageKeyType, ItemType>(
-      items == freezed
-          ? _value.items
+      null == items
+          ? _self._items
           : items // ignore: cast_nullable_to_non_nullable
               as List<ItemType>,
-      status == freezed
-          ? _value.status
+      null == status
+          ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as PagingStatus,
-      hasRequestNextPage == freezed
-          ? _value.hasRequestNextPage
+      null == hasRequestNextPage
+          ? _self.hasRequestNextPage
           : hasRequestNextPage // ignore: cast_nullable_to_non_nullable
               as bool,
     ));
@@ -143,352 +130,94 @@ class _$PagingStateDataCopyWithImpl<PageKeyType, ItemType, $Res>
 }
 
 /// @nodoc
-class _$PagingStateData<PageKeyType, ItemType>
-    implements PagingStateData<PageKeyType, ItemType> {
-  const _$PagingStateData(this.items, this.status, this.hasRequestNextPage);
 
-  @override
-  final List<ItemType> items;
-  @override
-  final PagingStatus status;
-  @override
-  final bool hasRequestNextPage;
-
-  @override
-  String toString() {
-    return 'PagingState<$PageKeyType, $ItemType>(items: $items, status: $status, hasRequestNextPage: $hasRequestNextPage)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other is PagingStateData<PageKeyType, ItemType> &&
-            (identical(other.items, items) ||
-                const DeepCollectionEquality().equals(other.items, items)) &&
-            (identical(other.status, status) ||
-                const DeepCollectionEquality().equals(other.status, status)) &&
-            (identical(other.hasRequestNextPage, hasRequestNextPage) ||
-                const DeepCollectionEquality()
-                    .equals(other.hasRequestNextPage, hasRequestNextPage)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(items) ^
-      const DeepCollectionEquality().hash(status) ^
-      const DeepCollectionEquality().hash(hasRequestNextPage);
-
-  @JsonKey(ignore: true)
-  @override
-  $PagingStateDataCopyWith<PageKeyType, ItemType,
-          PagingStateData<PageKeyType, ItemType>>
-      get copyWith => _$PagingStateDataCopyWithImpl<PageKeyType, ItemType,
-          PagingStateData<PageKeyType, ItemType>>(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)
-        $default, {
-    required TResult Function() loading,
-    required TResult Function(dynamic error) error,
-  }) {
-    return $default(items, status, hasRequestNextPage);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)?
-        $default, {
-    TResult Function()? loading,
-    TResult Function(dynamic error)? error,
-    required TResult orElse(),
-  }) {
-    if ($default != null) {
-      return $default(items, status, hasRequestNextPage);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(PagingStateData<PageKeyType, ItemType> value) $default, {
-    required TResult Function(PagingStateLoading<PageKeyType, ItemType> value)
-        loading,
-    required TResult Function(PagingStateError<PageKeyType, ItemType> value)
-        error,
-  }) {
-    return $default(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(PagingStateData<PageKeyType, ItemType> value)? $default, {
-    TResult Function(PagingStateLoading<PageKeyType, ItemType> value)? loading,
-    TResult Function(PagingStateError<PageKeyType, ItemType> value)? error,
-    required TResult orElse(),
-  }) {
-    if ($default != null) {
-      return $default(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class PagingStateData<PageKeyType, ItemType>
+class PagingStateLoading<PageKeyType, ItemType>
     implements PagingState<PageKeyType, ItemType> {
-  const factory PagingStateData(
-          List<ItemType> items, PagingStatus status, bool hasRequestNextPage) =
-      _$PagingStateData<PageKeyType, ItemType>;
-
-  List<ItemType> get items => throw _privateConstructorUsedError;
-  PagingStatus get status => throw _privateConstructorUsedError;
-  bool get hasRequestNextPage => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $PagingStateDataCopyWith<PageKeyType, ItemType,
-          PagingStateData<PageKeyType, ItemType>>
-      get copyWith => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $PagingStateLoadingCopyWith<PageKeyType, ItemType, $Res> {
-  factory $PagingStateLoadingCopyWith(
-          PagingStateLoading<PageKeyType, ItemType> value,
-          $Res Function(PagingStateLoading<PageKeyType, ItemType>) then) =
-      _$PagingStateLoadingCopyWithImpl<PageKeyType, ItemType, $Res>;
-}
-
-/// @nodoc
-class _$PagingStateLoadingCopyWithImpl<PageKeyType, ItemType, $Res>
-    extends _$PagingStateCopyWithImpl<PageKeyType, ItemType, $Res>
-    implements $PagingStateLoadingCopyWith<PageKeyType, ItemType, $Res> {
-  _$PagingStateLoadingCopyWithImpl(
-      PagingStateLoading<PageKeyType, ItemType> _value,
-      $Res Function(PagingStateLoading<PageKeyType, ItemType>) _then)
-      : super(_value,
-            (v) => _then(v as PagingStateLoading<PageKeyType, ItemType>));
-
-  @override
-  PagingStateLoading<PageKeyType, ItemType> get _value =>
-      super._value as PagingStateLoading<PageKeyType, ItemType>;
-}
-
-/// @nodoc
-class _$PagingStateLoading<PageKeyType, ItemType>
-    implements PagingStateLoading<PageKeyType, ItemType> {
-  const _$PagingStateLoading();
-
-  @override
-  String toString() {
-    return 'PagingState<$PageKeyType, $ItemType>.loading()';
-  }
+  const PagingStateLoading();
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
-        (other is PagingStateLoading<PageKeyType, ItemType>);
+        (other.runtimeType == runtimeType &&
+            other is PagingStateLoading<PageKeyType, ItemType>);
   }
 
   @override
   int get hashCode => runtimeType.hashCode;
 
   @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)
-        $default, {
-    required TResult Function() loading,
-    required TResult Function(dynamic error) error,
-  }) {
-    return loading();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)?
-        $default, {
-    TResult Function()? loading,
-    TResult Function(dynamic error)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(PagingStateData<PageKeyType, ItemType> value) $default, {
-    required TResult Function(PagingStateLoading<PageKeyType, ItemType> value)
-        loading,
-    required TResult Function(PagingStateError<PageKeyType, ItemType> value)
-        error,
-  }) {
-    return loading(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(PagingStateData<PageKeyType, ItemType> value)? $default, {
-    TResult Function(PagingStateLoading<PageKeyType, ItemType> value)? loading,
-    TResult Function(PagingStateError<PageKeyType, ItemType> value)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading(this);
-    }
-    return orElse();
+  String toString() {
+    return 'PagingState<$PageKeyType, $ItemType>.loading()';
   }
 }
 
-abstract class PagingStateLoading<PageKeyType, ItemType>
+/// @nodoc
+
+class PagingStateError<PageKeyType, ItemType>
     implements PagingState<PageKeyType, ItemType> {
-  const factory PagingStateLoading() =
-      _$PagingStateLoading<PageKeyType, ItemType>;
-}
+  const PagingStateError(this.error);
 
-/// @nodoc
-abstract class $PagingStateErrorCopyWith<PageKeyType, ItemType, $Res> {
-  factory $PagingStateErrorCopyWith(
-          PagingStateError<PageKeyType, ItemType> value,
-          $Res Function(PagingStateError<PageKeyType, ItemType>) then) =
-      _$PagingStateErrorCopyWithImpl<PageKeyType, ItemType, $Res>;
-  $Res call({dynamic error});
-}
-
-/// @nodoc
-class _$PagingStateErrorCopyWithImpl<PageKeyType, ItemType, $Res>
-    extends _$PagingStateCopyWithImpl<PageKeyType, ItemType, $Res>
-    implements $PagingStateErrorCopyWith<PageKeyType, ItemType, $Res> {
-  _$PagingStateErrorCopyWithImpl(PagingStateError<PageKeyType, ItemType> _value,
-      $Res Function(PagingStateError<PageKeyType, ItemType>) _then)
-      : super(
-            _value, (v) => _then(v as PagingStateError<PageKeyType, ItemType>));
-
-  @override
-  PagingStateError<PageKeyType, ItemType> get _value =>
-      super._value as PagingStateError<PageKeyType, ItemType>;
-
-  @override
-  $Res call({
-    Object? error = freezed,
-  }) {
-    return _then(PagingStateError<PageKeyType, ItemType>(
-      error == freezed
-          ? _value.error
-          : error // ignore: cast_nullable_to_non_nullable
-              as dynamic,
-    ));
-  }
-}
-
-/// @nodoc
-class _$PagingStateError<PageKeyType, ItemType>
-    implements PagingStateError<PageKeyType, ItemType> {
-  const _$PagingStateError(this.error);
-
-  @override
   final dynamic error;
 
-  @override
-  String toString() {
-    return 'PagingState<$PageKeyType, $ItemType>.error(error: $error)';
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is PagingStateError<PageKeyType, ItemType> &&
-            (identical(other.error, error) ||
-                const DeepCollectionEquality().equals(other.error, error)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^ const DeepCollectionEquality().hash(error);
-
-  @JsonKey(ignore: true)
-  @override
+  /// Create a copy of PagingState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $PagingStateErrorCopyWith<PageKeyType, ItemType,
           PagingStateError<PageKeyType, ItemType>>
       get copyWith => _$PagingStateErrorCopyWithImpl<PageKeyType, ItemType,
           PagingStateError<PageKeyType, ItemType>>(this, _$identity);
 
   @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)
-        $default, {
-    required TResult Function() loading,
-    required TResult Function(dynamic error) error,
-  }) {
-    return error(this.error);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PagingStateError<PageKeyType, ItemType> &&
+            const DeepCollectionEquality().equals(other.error, error));
   }
 
   @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            List<ItemType> items, PagingStatus status, bool hasRequestNextPage)?
-        $default, {
-    TResult Function()? loading,
-    TResult Function(dynamic error)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(this.error);
-    }
-    return orElse();
-  }
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(error));
 
   @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(PagingStateData<PageKeyType, ItemType> value) $default, {
-    required TResult Function(PagingStateLoading<PageKeyType, ItemType> value)
-        loading,
-    required TResult Function(PagingStateError<PageKeyType, ItemType> value)
-        error,
-  }) {
-    return error(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(PagingStateData<PageKeyType, ItemType> value)? $default, {
-    TResult Function(PagingStateLoading<PageKeyType, ItemType> value)? loading,
-    TResult Function(PagingStateError<PageKeyType, ItemType> value)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(this);
-    }
-    return orElse();
+  String toString() {
+    return 'PagingState<$PageKeyType, $ItemType>.error(error: $error)';
   }
 }
 
-abstract class PagingStateError<PageKeyType, ItemType>
-    implements PagingState<PageKeyType, ItemType> {
-  const factory PagingStateError(dynamic error) =
-      _$PagingStateError<PageKeyType, ItemType>;
-
-  dynamic get error => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $PagingStateErrorCopyWith<PageKeyType, ItemType,
-          PagingStateError<PageKeyType, ItemType>>
-      get copyWith => throw _privateConstructorUsedError;
+/// @nodoc
+abstract mixin class $PagingStateErrorCopyWith<PageKeyType, ItemType, $Res>
+    implements $PagingStateCopyWith<PageKeyType, ItemType, $Res> {
+  factory $PagingStateErrorCopyWith(
+          PagingStateError<PageKeyType, ItemType> value,
+          $Res Function(PagingStateError<PageKeyType, ItemType>) _then) =
+      _$PagingStateErrorCopyWithImpl;
+  @useResult
+  $Res call({dynamic error});
 }
+
+/// @nodoc
+class _$PagingStateErrorCopyWithImpl<PageKeyType, ItemType, $Res>
+    implements $PagingStateErrorCopyWith<PageKeyType, ItemType, $Res> {
+  _$PagingStateErrorCopyWithImpl(this._self, this._then);
+
+  final PagingStateError<PageKeyType, ItemType> _self;
+  final $Res Function(PagingStateError<PageKeyType, ItemType>) _then;
+
+  /// Create a copy of PagingState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? error = freezed,
+  }) {
+    return _then(PagingStateError<PageKeyType, ItemType>(
+      freezed == error
+          ? _self.error
+          : error // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+    ));
+  }
+}
+
+// dart format on

@@ -28,7 +28,7 @@ abstract class DataSource<PageKeyType, ItemType> {
       return results?.item1 ?? [];
     } else {
       _cancelableOperation =
-          CancelableOperation.fromFuture(loadPageAfter(currentKey!, pageSize));
+          CancelableOperation.fromFuture(loadPageAfter(currentKey as PageKeyType, pageSize));
       final results = await _cancelableOperation!.valueOrCancellation();
       // final results = await loadPageAfter(currentKey as PageKeyType, pageSize);
       currentKey = results?.item2;

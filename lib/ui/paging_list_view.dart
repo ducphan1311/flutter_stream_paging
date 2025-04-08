@@ -21,7 +21,7 @@ typedef AddItemWidgetBuilder<ItemType> = Widget Function(
 class PagingListView<PageKeyType, ItemType>
     extends BaseWidget<PageKeyType, ItemType> {
   const PagingListView({
-    Key? key,
+    super.key,
     this.isEnablePullToRefresh = true,
     this.padding = EdgeInsets.zero,
     this.scrollDirection = Axis.vertical,
@@ -43,25 +43,16 @@ class PagingListView<PageKeyType, ItemType>
     this.newPageCompletedIndicatorBuilder,
     this.newPageProgressIndicatorBuilder,
     this.addItemBuilder,
-    required PagedChildBuilderDelegate<ItemType> builderDelegate,
-    required DataSource<PageKeyType, ItemType> pageDataSource,
-    WidgetBuilder? emptyBuilder,
-    WidgetBuilder? loadingBuilder,
-    ErrorBuilder? errorBuilder,
-    WidgetBuilder? refreshBuilder,
-  })  : _separatorBuilder = null,
-        super(
-          builderDelegate: builderDelegate,
-          emptyBuilder: emptyBuilder,
-          loadingBuilder: loadingBuilder,
-          errorBuilder: errorBuilder,
-          pageDataSource: pageDataSource,
-          refreshBuilder: refreshBuilder,
-          key: key,
-        );
+    required super.builderDelegate,
+    required super.pageDataSource,
+    super.emptyBuilder,
+    super.loadingBuilder,
+    super.errorBuilder,
+    super.refreshBuilder,
+  })  : _separatorBuilder = null;
 
   const PagingListView.separated({
-    Key? key,
+    super.key,
     this.isEnablePullToRefresh = true,
     this.padding = EdgeInsets.zero,
     required SeparatorBuilder<ItemType> separatorBuilder,
@@ -84,22 +75,13 @@ class PagingListView<PageKeyType, ItemType>
     this.newPageCompletedIndicatorBuilder,
     this.newPageProgressIndicatorBuilder,
     this.addItemBuilder,
-    required PagedChildBuilderDelegate<ItemType> builderDelegate,
-    required DataSource<PageKeyType, ItemType> pageDataSource,
-    WidgetBuilder? emptyBuilder,
-    WidgetBuilder? loadingBuilder,
-    ErrorBuilder? errorBuilder,
-    WidgetBuilder? refreshBuilder,
-  })  : _separatorBuilder = separatorBuilder,
-        super(
-          builderDelegate: builderDelegate,
-          emptyBuilder: emptyBuilder,
-          loadingBuilder: loadingBuilder,
-          errorBuilder: errorBuilder,
-          pageDataSource: pageDataSource,
-          refreshBuilder: refreshBuilder,
-          key: key,
-        );
+    required super.builderDelegate,
+    required super.pageDataSource,
+    super.emptyBuilder,
+    super.loadingBuilder,
+    super.errorBuilder,
+    super.refreshBuilder,
+  })  : _separatorBuilder = separatorBuilder;
 
   final widgets.EdgeInsets padding;
   final SeparatorBuilder<ItemType>? _separatorBuilder;
@@ -138,8 +120,16 @@ class PagingListView<PageKeyType, ItemType>
 class PagingListViewState<PageKeyType, ItemType>
     extends State<PagingListView<PageKeyType, ItemType>> {
   PagingState<PageKeyType, ItemType> _pagingState = const PagingState.loading();
-  List<ItemType> get data =>
-      _pagingState.maybeMap((data) => data.items, orElse: () => <ItemType>[]);
+  late final ScrollController _scrollController;
+
+  // Cập nhật getter data để sử dụng pattern matching
+  List<ItemType> get data {
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      return (_pagingState as PagingStateData<PageKeyType, ItemType>).items;
+    }
+    return <ItemType>[];
+  }
+  
   CancelableOperation? cancelableOperation;
 
   void emit(PagingState<PageKeyType, ItemType> state) {
@@ -156,8 +146,13 @@ class PagingListViewState<PageKeyType, ItemType>
     if (cancelableOperation != null && !cancelableOperation!.isCompleted) {
       cancelableOperation!.cancel();
     }
-    var items =
-        _pagingState.maybeMap((value) => value.items, orElse: () => null);
+    
+    // Cập nhật để sử dụng pattern matching
+    List<ItemType>? items;
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      items = (_pagingState as PagingStateData<PageKeyType, ItemType>).items;
+    }
+    
     cancelableOperation = CancelableOperation.fromFuture(
         dataSource.loadPage(isRefresh: isRefresh, newKey: nextPageKey));
     cancelableOperation!.value.then((value) {
@@ -175,7 +170,7 @@ class PagingListViewState<PageKeyType, ItemType>
 
       bool isOngoing = isListingUnfinished;
 
-      bool isCompleted = hasItems && !hasNextPage;
+      // bool isCompleted = hasItems && !hasNextPage;
 
       /// The current pagination status.
       PagingStatus status =
@@ -193,48 +188,73 @@ class PagingListViewState<PageKeyType, ItemType>
       if (dataSource.currentKey == null) {
         emit(PagingState<PageKeyType, ItemType>.error(e));
       } else {
-        _pagingState.maybeMap(
-            (value) => emit(PagingState<PageKeyType, ItemType>(
-                value.items, PagingStatus.noItemsFound, true)),
-            orElse: () => null);
+        // Cập nhật để sử dụng pattern matching
+        if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+          final stateData = _pagingState as PagingStateData<PageKeyType, ItemType>;
+          emit(PagingState<PageKeyType, ItemType>(
+              stateData.items, PagingStatus.noItemsFound, true));
+        }
       }
     });
   }
 
   void copyWith(ItemType newItem, int index) {
-    _pagingState.maybeMap((value) {
+    // Cập nhật để sử dụng pattern matching
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
       var items = [...value.items];
       items[index] = newItem;
       emit(PagingStateData(items, value.status, value.hasRequestNextPage));
-    }, orElse: () => null);
+    }
   }
 
   void addItem(ItemType newItem) {
-    _pagingState.maybeMap((value) {
-      var items = [newItem, ...value.items];
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
+
+      // Lưu vị trí scroll hiện tại trước khi thêm item
+      final scrollPosition = _scrollController.position;
+      final currentOffset = scrollPosition.pixels ?? 0;
+
+      var items = widget.reverse
+          ? [...value.items, newItem]  // Thêm vào cuối nếu reverse
+          : [newItem, ...value.items]; // Thêm vào đầu nếu không reverse
+
       emit(PagingStateData(items, value.status, value.hasRequestNextPage));
-    }, orElse: () => null);
+
+      // Nếu đang ở chế độ reverse, giữ nguyên vị trí scroll sau khi thêm item
+      if (widget.reverse && scrollPosition.hasPixels) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          scrollPosition.jumpTo(currentOffset);
+        });
+      }
+    }
   }
 
   void deleteItem(int index) {
-    _pagingState.maybeMap((value) {
+    // Cập nhật để sử dụng pattern matching
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
       var items = [...value.items];
       items.removeWhere((element) => items.indexOf(element) == index);
       emit(PagingStateData(items, value.status, value.hasRequestNextPage));
-    }, orElse: () => null);
+    }
   }
 
   void requestNextPage({bool hasRequestNextPage = true}) {
-    _pagingState.maybeMap(
-        (value) => emit(PagingState<PageKeyType, ItemType>(
-            value.items, value.status, hasRequestNextPage)),
-        orElse: () => null);
+    // Cập nhật để sử dụng pattern matching
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
+      emit(PagingState<PageKeyType, ItemType>(
+          value.items, value.status, hasRequestNextPage));
+    }
   }
 
   @override
   void initState() {
     super.initState();
     dataSource = widget.pageDataSource;
+    _scrollController = widget.controller ?? ScrollController();
     loadPage();
   }
 
@@ -252,31 +272,47 @@ class PagingListViewState<PageKeyType, ItemType>
 
   @override
   Widget build(BuildContext context) {
-    final child = _pagingState.when((items, status, hasRequestNextPage) {
-      return widget.addItemBuilder != null
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(
-                  child: _pagingSilverBuilder(items: items, status: status),
-                ),
-                widget.addItemBuilder!(context, (newItem) => addItem(newItem))
-              ],
-            )
-          : _pagingSilverBuilder(items: items, status: status);
-    },
-        loading: () => (widget.loadingBuilder != null)
+    // Cập nhật để sử dụng pattern matching
+    Widget child;
+    
+    switch (_pagingState) {
+      case PagingStateData(items: final items, status: final status):
+        child = widget.addItemBuilder != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                    child: _pagingSilverBuilder(items: items, status: status),
+                  ),
+                  widget.addItemBuilder!(context, (newItem) => addItem(newItem))
+                ],
+              )
+            : _pagingSilverBuilder(items: items, status: status);
+        break;
+        
+      case PagingStateLoading():
+        child = (widget.loadingBuilder != null)
             ? widget.loadingBuilder!(context)
-            : const PagingDefaultLoading(),
-        error: (error) => widget.errorBuilder != null
+            : const PagingDefaultLoading();
+        break;
+        
+      case PagingStateError():
+        final error = (_pagingState as PagingStateError).error;
+        child = widget.errorBuilder != null
             ? widget.errorBuilder!(context, error)
             : PagingDefaultErrorWidget(
                 errorMessage: error,
                 onPressed: () async {
                   await loadPage(isRefresh: true);
                 },
-              ));
+              );
+        break;
+        
+      default:
+        child = SizedBox();
+    }
+    
     if (Platform.isAndroid && !widget.reverse) {
       return RefreshIndicator(
           child: child,
@@ -294,8 +330,12 @@ class PagingListViewState<PageKeyType, ItemType>
     required List<ItemType> itemList,
     required int itemCount,
   }) {
-    var hasRequestedNextPage = _pagingState
-        .maybeMap((value) => value.hasRequestNextPage, orElse: () => false);
+    // Cập nhật để sử dụng pattern matching
+    bool hasRequestedNextPage = false;
+    if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
+      hasRequestedNextPage = (_pagingState as PagingStateData<PageKeyType, ItemType>).hasRequestNextPage;
+    }
+    
     if (!hasRequestedNextPage) {
       final newPageRequestTriggerIndex =
           max(0, itemCount - widget.invisibleItemsThreshold);
@@ -306,7 +346,6 @@ class PagingListViewState<PageKeyType, ItemType>
         // Schedules the request for the end of this frame.
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           requestNextPage();
-          print('requestNextPage:');
           await loadPage();
           // _pagingController.notifyPageRequestListeners(_nextKey!);
         });
@@ -389,7 +428,7 @@ class PagingListViewState<PageKeyType, ItemType>
             padding: widget.padding,
             scrollDirection: widget.scrollDirection,
             reverse: widget.reverse,
-            controller: widget.controller,
+            controller: _scrollController,
             primary: widget.primary,
             physics: widget.physics,
             shrinkWrap: widget.shrinkWrap,
@@ -457,6 +496,6 @@ class PagingListViewState<PageKeyType, ItemType>
           )
         : (widget.emptyBuilder != null
             ? widget.emptyBuilder!(context)
-            : SizedBox());
+            : const SizedBox());
   }
 }
