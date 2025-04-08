@@ -80,4 +80,7 @@
 # 1.1.3
 - handle scrollController when adding new item
 
+# 1.1.4
+- fix adding new item
+
 
