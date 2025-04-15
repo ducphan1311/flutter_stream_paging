@@ -1,6 +1,6 @@
 name: flutter_stream_paging
 description: A comprehensive Flutter package for efficient stream-based pagination, supporting infinite scrolling and dynamic data loading with customizable UI components.
-version: 1.1.4
+version: 1.1.5
 homepage: https://github.com/ducphan1311/flutter_stream_paging
 repository: https://github.com/ducphan1311/flutter_stream_paging
 issue_tracker: https://github.com/ducphan1311/flutter_stream_paging/issues

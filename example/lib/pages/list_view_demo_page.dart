@@ -93,7 +93,7 @@ class ListViewDemoPageState extends State<ListViewDemoPage> {
                 onPressed: () {
                   var newData = Note(DateTime.now().hashCode, 'This add title',
                       'This add content');
-                  onAddItem(newData);
+                  onAddItem(newData, false);
                 },
                 child: const Text('add')),
           ],

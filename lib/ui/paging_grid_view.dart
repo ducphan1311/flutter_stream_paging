@@ -112,11 +112,11 @@ class PagingGridViewState<PageKeyType, ItemType>
 
   Future loadPage({PageKeyType? nextPageKey, bool isRefresh = false}) async {
     List<ItemType>? items;
-    
+
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
       items = (_pagingState as PagingStateData<PageKeyType, ItemType>).items;
     }
-    
+
     await dataSource.loadPage(isRefresh: isRefresh, newKey: nextPageKey).then(
         (value) {
       int? itemCount = isRefresh
@@ -152,7 +152,8 @@ class PagingGridViewState<PageKeyType, ItemType>
         emit(PagingState<PageKeyType, ItemType>.error(e));
       } else {
         if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
-          final stateData = _pagingState as PagingStateData<PageKeyType, ItemType>;
+          final stateData =
+              _pagingState as PagingStateData<PageKeyType, ItemType>;
           emit(PagingState<PageKeyType, ItemType>(
               stateData.items, PagingStatus.noItemsFound, true));
         }
@@ -169,11 +170,11 @@ class PagingGridViewState<PageKeyType, ItemType>
     }
   }
 
-  void addItem(ItemType newItem) {
+  void addItem(ItemType newItem, bool isKeepOffset) {
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
       final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
 
-      if (widget.reverse && _scrollController.hasClients) {
+      if (widget.reverse && _scrollController.hasClients && isKeepOffset) {
         _previousScrollOffset = _scrollController.position.pixels;
         final beforeExtent = _scrollController.position.maxScrollExtent;
 
@@ -199,7 +200,6 @@ class PagingGridViewState<PageKeyType, ItemType>
       }
     }
   }
-
 
   void deleteItem(int index) {
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
@@ -249,7 +249,8 @@ class PagingGridViewState<PageKeyType, ItemType>
                   Expanded(
                     child: _pagingSilverBuilder(items: items, status: status),
                   ),
-                  widget.addItemBuilder!(context, (newItem) => addItem(newItem))
+                  widget.addItemBuilder!(context,
+                      (newItem, isKeepOffset) => addItem(newItem, isKeepOffset))
                 ],
               )
             : _pagingSilverBuilder(items: items, status: status);
@@ -291,12 +292,14 @@ class PagingGridViewState<PageKeyType, ItemType>
     // Cập nhật để sử dụng pattern matching
     bool hasRequestedNextPage = false;
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
-      hasRequestedNextPage = (_pagingState as PagingStateData<PageKeyType, ItemType>).hasRequestNextPage;
+      hasRequestedNextPage =
+          (_pagingState as PagingStateData<PageKeyType, ItemType>)
+              .hasRequestNextPage;
     }
 
     if (!hasRequestedNextPage) {
       final newPageRequestTriggerIndex =
-      max(0, itemCount - widget.invisibleItemsThreshold);
+          max(0, itemCount - widget.invisibleItemsThreshold);
 
       final isBuildingTriggerIndexItem = index == newPageRequestTriggerIndex;
 
@@ -320,7 +323,8 @@ class PagingGridViewState<PageKeyType, ItemType>
     // Sử dụng key cho item
     return KeyedSubtree(
       key: _itemKeys[index],
-      child: widget.builderDelegate.itemBuilder(context, item, index, (newItem) {
+      child:
+          widget.builderDelegate.itemBuilder(context, item, index, (newItem) {
         copyWith(newItem, index);
       }, () => deleteItem(index), itemList),
     );

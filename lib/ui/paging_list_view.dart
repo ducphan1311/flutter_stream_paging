@@ -16,7 +16,7 @@ typedef NewPageWidgetBuilder = Widget Function(
 
 typedef AddItemWidgetBuilder<ItemType> = Widget Function(
   BuildContext context,
-  Function(ItemType newItem) onAddItem,
+  Function(ItemType newItem, bool isKeepOffset) onAddItem,
 );
 
 class PagingListView<PageKeyType, ItemType>
@@ -50,7 +50,7 @@ class PagingListView<PageKeyType, ItemType>
     super.loadingBuilder,
     super.errorBuilder,
     super.refreshBuilder,
-  })  : _separatorBuilder = null;
+  }) : _separatorBuilder = null;
 
   const PagingListView.separated({
     super.key,
@@ -82,7 +82,7 @@ class PagingListView<PageKeyType, ItemType>
     super.loadingBuilder,
     super.errorBuilder,
     super.refreshBuilder,
-  })  : _separatorBuilder = separatorBuilder;
+  }) : _separatorBuilder = separatorBuilder;
 
   final widgets.EdgeInsets padding;
   final SeparatorBuilder<ItemType>? _separatorBuilder;
@@ -133,7 +133,7 @@ class PagingListViewState<PageKeyType, ItemType>
     }
     return <ItemType>[];
   }
-  
+
   CancelableOperation? cancelableOperation;
 
   void emit(PagingState<PageKeyType, ItemType> state) {
@@ -150,13 +150,13 @@ class PagingListViewState<PageKeyType, ItemType>
     if (cancelableOperation != null && !cancelableOperation!.isCompleted) {
       cancelableOperation!.cancel();
     }
-    
+
     // Cập nhật để sử dụng pattern matching
     List<ItemType>? items;
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
       items = (_pagingState as PagingStateData<PageKeyType, ItemType>).items;
     }
-    
+
     cancelableOperation = CancelableOperation.fromFuture(
         dataSource.loadPage(isRefresh: isRefresh, newKey: nextPageKey));
     cancelableOperation!.value.then((value) {
@@ -194,7 +194,8 @@ class PagingListViewState<PageKeyType, ItemType>
       } else {
         // Cập nhật để sử dụng pattern matching
         if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
-          final stateData = _pagingState as PagingStateData<PageKeyType, ItemType>;
+          final stateData =
+              _pagingState as PagingStateData<PageKeyType, ItemType>;
           emit(PagingState<PageKeyType, ItemType>(
               stateData.items, PagingStatus.noItemsFound, true));
         }
@@ -212,11 +213,11 @@ class PagingListViewState<PageKeyType, ItemType>
     }
   }
 
-  void addItem(ItemType newItem) {
+  void addItem(ItemType newItem, bool isKeepOffset) {
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
       final value = _pagingState as PagingStateData<PageKeyType, ItemType>;
 
-      if (widget.reverse && _scrollController.hasClients) {
+      if (widget.reverse && _scrollController.hasClients && isKeepOffset) {
         _previousScrollOffset = _scrollController.position.pixels;
         final beforeExtent = _scrollController.position.maxScrollExtent;
 
@@ -271,7 +272,8 @@ class PagingListViewState<PageKeyType, ItemType>
   }
 
   @override
-  void didUpdateWidget(covariant PagingListView<PageKeyType, ItemType> oldWidget) {
+  void didUpdateWidget(
+      covariant PagingListView<PageKeyType, ItemType> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     // Kiểm tra sau khi widget đã được cập nhật
@@ -290,7 +292,7 @@ class PagingListViewState<PageKeyType, ItemType>
   Widget build(BuildContext context) {
     // Cập nhật để sử dụng pattern matching
     Widget child;
-    
+
     switch (_pagingState) {
       case PagingStateData(items: final items, status: final status):
         child = widget.addItemBuilder != null
@@ -301,18 +303,19 @@ class PagingListViewState<PageKeyType, ItemType>
                   Expanded(
                     child: _pagingSilverBuilder(items: items, status: status),
                   ),
-                  widget.addItemBuilder!(context, (newItem) => addItem(newItem))
+                  widget.addItemBuilder!(context,
+                      (newItem, isKeepOffset) => addItem(newItem, isKeepOffset))
                 ],
               )
             : _pagingSilverBuilder(items: items, status: status);
         break;
-        
+
       case PagingStateLoading():
         child = (widget.loadingBuilder != null)
             ? widget.loadingBuilder!(context)
             : const PagingDefaultLoading();
         break;
-        
+
       case PagingStateError():
         final error = (_pagingState as PagingStateError).error;
         child = widget.errorBuilder != null
@@ -324,11 +327,11 @@ class PagingListViewState<PageKeyType, ItemType>
                 },
               );
         break;
-        
+
       default:
         child = SizedBox();
     }
-    
+
     if (Platform.isAndroid && !widget.reverse) {
       return RefreshIndicator(
           child: child,
@@ -349,9 +352,11 @@ class PagingListViewState<PageKeyType, ItemType>
     // Cập nhật để sử dụng pattern matching
     bool hasRequestedNextPage = false;
     if (_pagingState is PagingStateData<PageKeyType, ItemType>) {
-      hasRequestedNextPage = (_pagingState as PagingStateData<PageKeyType, ItemType>).hasRequestNextPage;
+      hasRequestedNextPage =
+          (_pagingState as PagingStateData<PageKeyType, ItemType>)
+              .hasRequestNextPage;
     }
-    
+
     if (!hasRequestedNextPage) {
       final newPageRequestTriggerIndex =
           max(0, itemCount - widget.invisibleItemsThreshold);
@@ -378,7 +383,8 @@ class PagingListViewState<PageKeyType, ItemType>
     // Sử dụng key cho item
     return KeyedSubtree(
       key: _itemKeys[index],
-      child: widget.builderDelegate.itemBuilder(context, item, index, (newItem) {
+      child:
+          widget.builderDelegate.itemBuilder(context, item, index, (newItem) {
         copyWith(newItem, index);
       }, () => deleteItem(index), itemList),
     );

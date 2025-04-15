@@ -83,4 +83,7 @@
 # 1.1.4
 - fix adding new item
 
+# 1.1.5
+- adding isKeepOffset
+
 
